@@ -25,16 +25,16 @@ namespace DissertationArtefact.Server.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Income> Get()
+        public List<Income> Get()
         {
-            var incomes = new Array<Income>
+            var incomes = new List<Income>
             {
-                new Income {Amount = "2000", LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = "15/12/2020",  SenderName = "Job"},
-                new Income {Amount = "2000", LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = "15/12/2020",  SenderName = "Job"},
-                new Income {Amount = "2000", LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = "15/12/2020",  SenderName = "Job"},
-                new Income {Amount = "2000", LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = "15/12/2020",  SenderName = "Job"},
-                new Income {Amount = "2000", LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = "15/12/2020",  SenderName = "Job"},
-                new Income {Amount = "2000", LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = "15/12/2020",  SenderName = "Job"}
+                new Income {Amount = 2000, LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = new DateTime( 2020, 12, 15),  SenderName = "Job"},
+                new Income {Amount = 2000, LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = new DateTime( 2020, 12, 15),  SenderName = "Job"},
+                new Income {Amount = 2000, LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = new DateTime( 2020, 12, 15),  SenderName = "Job"},
+                new Income {Amount = 2000, LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = new DateTime( 2020, 12, 15),  SenderName = "Job"},
+                new Income {Amount = 2000, LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = new DateTime( 2020, 12, 15),  SenderName = "Job"},
+                new Income {Amount = 2000, LabelName = "Salary", Occurance = Occurances.monthly, PaymentDate = new DateTime( 2020, 12, 15),  SenderName = "Job"}
 
             };
             return incomes;

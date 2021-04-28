@@ -1,0 +1,47 @@
+﻿@page "/income" 
+@using DissertationArtefact.Shared
+@inject HttpClient Http
+
+<h1>Income</h1>
+
+@if (incomes == null)
+{
+    <p><em>Loading income</em></p>
+}
+else
+{
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@nameof(Income.LabelName)</th>
+                <th>@nameof(Income.Occurance)</th>
+                <th>@nameof(Income.PaymentDate)</th>
+                <th>@nameof(Income.SenderName)</th>
+                <th>@nameof(Income.Amount)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var income in incomes)
+            {
+            <tr>
+                <td>@income.LabelName</td>
+                <td>@income.Occurance</td>
+                <td>@income.PaymentDate</td>
+                <td>@income.SenderName</td>
+                <td>@income.Amount</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Income[] incomes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        incomes = await Http.GetFromJsonAsync<Income[]>("Income");
+    }
+
+}
