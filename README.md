@@ -11,6 +11,7 @@
 - Create test data
 - Write some unit tests
 - Write user acceptance test
+- Look up Bootstrap icons for pages
 
 
 - Create user profile entity
