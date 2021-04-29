@@ -14,22 +14,33 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>@nameof(Income.LabelName)</th>
+                <!--<th>@nameof(Income.LabelName)</th>
                 <th>@nameof(Income.Occurance)</th>
                 <th>@nameof(Income.PaymentDate)</th>
                 <th>@nameof(Income.SenderName)</th>
-                <th>@nameof(Income.Amount)</th>
+                <th>@nameof(Income.Amount)</th>-->
+
+                <th>Name</th>
+                <th>Payment Date</th>
+                <th>Sender</th>
+                <th>Amount</th>
+
             </tr>
         </thead>
         <tbody>
             @foreach (var income in incomes)
             {
             <tr>
+                <!--<td>@income.LabelName</td>
+    <td>@income.Occurance</td>
+    <td>@income.PaymentDate</td>
+    <td>@income.SenderName</td>
+    <td>@income.Amount</td>-->
+
                 <td>@income.LabelName</td>
-                <td>@income.Occurance</td>
                 <td>@income.PaymentDate</td>
                 <td>@income.SenderName</td>
-                <td>@income.Amount</td>
+                <td>£@income.Amount</td>
             </tr>
             }
         </tbody>

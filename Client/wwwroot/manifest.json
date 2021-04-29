@@ -1,13 +1,13 @@
 {
-  "name": "DissertationArtefact",
-  "short_name": "DissertationArtefact",
+  "name": "Pluto",
+  "short_name": "Pluto",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#03173d",
   "icons": [
     {
-      "src": "icon-512.png",
+      "src": "logo512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
