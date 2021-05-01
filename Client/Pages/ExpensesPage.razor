@@ -1,16 +1,57 @@
 ﻿@page "/expenses"
+@using DissertationArtefact.Shared
+@inject HttpClient Http
 
 <h1>Expenses</h1>
 
-<p>Current count: @currentCount</p>
+@if (expenses == null)
+{
+    <p><em>Loading expenses...</em></p>
+}
+else
+{ 
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+
+<table class="table">
+    <thead>
+        <tr>
+
+            <th>Name</th>
+            <th>Payment Date</th>
+            <th>Frequency</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Amount</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var expense in expenses)
+        {
+        <tr>
+
+            <td>@expense.LabelName</td>
+            <td>@expense.PaymentDate</td>
+            <td>@expense.Frequency</td>
+            <td>@expense.Category</td>
+            <td>@expense.Type</td>
+            <td>£@expense.Amount</td>
+
+        </tr>
+        }
+    </tbody>
+</table>
+
+}
 
 @code {
-    private int currentCount = 0;
+    private Expense[] expenses;
 
-    private void IncrementCount()
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+        expenses = await Http.GetFromJsonAsync<Expense[]>
+    ("Expense");
     }
-}
+
+    }

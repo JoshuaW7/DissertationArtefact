@@ -15,13 +15,14 @@ else
         <thead>
             <tr>
                 <!--<th>@nameof(Income.LabelName)</th>
-                <th>@nameof(Income.Occurance)</th>
-                <th>@nameof(Income.PaymentDate)</th>
-                <th>@nameof(Income.SenderName)</th>
-                <th>@nameof(Income.Amount)</th>-->
+    <th>@nameof(Income.Occurance)</th>
+    <th>@nameof(Income.PaymentDate)</th>
+    <th>@nameof(Income.SenderName)</th>
+    <th>@nameof(Income.Amount)</th>-->
 
                 <th>Name</th>
                 <th>Payment Date</th>
+                <th>Frequency</th>
                 <th>Sender</th>
                 <th>Amount</th>
 
@@ -39,6 +40,7 @@ else
 
                 <td>@income.LabelName</td>
                 <td>@income.PaymentDate</td>
+                <td>@income.Frequency</td>
                 <td>@income.SenderName</td>
                 <td>£@income.Amount</td>
             </tr>
