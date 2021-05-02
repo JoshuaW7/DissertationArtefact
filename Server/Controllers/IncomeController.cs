@@ -28,25 +28,37 @@ namespace DissertationArtefact.Server.Controllers
             // Extract to file (Read & Write)
             //string s = WinOS.File.ReadAllText("");
             
-            var incomes = new List<Income>
-            {
-                new Income {IncomeID = Guid.NewGuid(), Amount = 2000, LabelName = "Salary", Frequency = IncomeFrequencies.Monthly, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Job"},
-                new Income {IncomeID = Guid.NewGuid(), Amount = 1200, LabelName = "Property", Frequency = IncomeFrequencies.Monthly, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Tenant"},
-                new Income {IncomeID = Guid.NewGuid(), Amount = 200, LabelName = "Present", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 23),  SenderName = "Parents"},
-                new Income {IncomeID = Guid.NewGuid(), Amount = 360, LabelName = "Salary", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 22),  SenderName = "British Airways"},
-                new Income {IncomeID = Guid.NewGuid(), Amount = 25, LabelName = "Salary", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Friend"},
-                new Income {IncomeID = Guid.NewGuid(), Amount = 7.50, LabelName = "Salary", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Friend"}
+            //var incomes = new List<Income>
+            //{
+            //    new Income {IncomeID = Guid.NewGuid(), Amount = 2000, LabelName = "Salary", Frequency = IncomeFrequencies.Monthly, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Job"},
+            //    new Income {IncomeID = Guid.NewGuid(), Amount = 1200, LabelName = "Property", Frequency = IncomeFrequencies.Monthly, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Tenant"},
+            //    new Income {IncomeID = Guid.NewGuid(), Amount = 200, LabelName = "Present", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 23),  SenderName = "Parents"},
+            //    new Income {IncomeID = Guid.NewGuid(), Amount = 360, LabelName = "Salary", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 22),  SenderName = "British Airways"},
+            //    new Income {IncomeID = Guid.NewGuid(), Amount = 25, LabelName = "Salary", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Friend"},
+            //    new Income {IncomeID = Guid.NewGuid(), Amount = 7.50, LabelName = "Salary", Frequency = IncomeFrequencies.OneTime, PaymentDate = new DateTime(2020, 12, 15),  SenderName = "Friend"}
 
-            };
-
-            string incomeJSON = JsonSerializer.Serialize(incomes);
-
-            System.IO.File.WriteAllText(@$"d:\temp\{ nameof(incomes)}.json", incomeJSON);
+            //};
             
+            //string incomeJSON = JsonSerializer.Serialize(incomes);
+
+            //System.IO.File.WriteAllText(@$"d:\temp\{ nameof(incomes)}.json", incomeJSON);
+
+            string DataFile = @$"d:\temp\incomes.json";
+
+            if (!WinOS.File.Exists(DataFile))
+            {
+                return null;
+            }
+
+            string incomesJSON = WinOS.File.ReadAllText(DataFile);
+
+            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(incomesJSON);
+
             return incomes;
+
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public Income GetByID(string id)
         {
             // User field needed at some point...
@@ -60,9 +72,14 @@ namespace DissertationArtefact.Server.Controllers
                 return null;
             }
 
-            string data = WinOS.File.ReadAllText(DataFile);
+            if (new Guid().ToString() == id) 
+            {
+                return null;
+            }
 
-            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(DataFile);
+            string incomesJSON = WinOS.File.ReadAllText(DataFile);
+
+            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(incomesJSON);
 
             var income = incomes.Where(i => i.IncomeID == new Guid(id)).FirstOrDefault();
             return income;

@@ -1,6 +1,7 @@
-﻿@page "/income" 
+﻿@page "/income"
 @using DissertationArtefact.Shared
 @inject HttpClient Http
+@inject NavigationManager NavManager
 
 <h1>Income</h1>
 
@@ -15,11 +16,11 @@ else
         <thead>
             <tr>
                 <!--<th>@nameof(Income.LabelName)</th>
-    <th>@nameof(Income.Occurance)</th>
-    <th>@nameof(Income.PaymentDate)</th>
-    <th>@nameof(Income.SenderName)</th>
-    <th>@nameof(Income.Amount)</th>-->
-
+                <th>@nameof(Income.Occurance)</th>
+                <th>@nameof(Income.PaymentDate)</th>
+                <th>@nameof(Income.SenderName)</th>
+                <th>@nameof(Income.Amount)</th>-->
+                <th></th>
                 <th>Name</th>
                 <th>Payment Date</th>
                 <th>Frequency</th>
@@ -31,22 +32,30 @@ else
         <tbody>
             @foreach (var income in incomes)
             {
-            <tr>
-                <!--<td>@income.LabelName</td>
-    <td>@income.Occurance</td>
-    <td>@income.PaymentDate</td>
-    <td>@income.SenderName</td>
-    <td>@income.Amount</td>-->
-
-                <td>@income.LabelName</td>
-                <td>@income.PaymentDate</td>
-                <td>@income.Frequency</td>
-                <td>@income.SenderName</td>
-                <td>@income.Amount.ToString("£0.00")</td>
-            </tr>
+                <tr>
+                    <!--<td>@income.LabelName</td>
+                    <td>@income.Occurance</td>
+                    <td>@income.PaymentDate</td>
+                    <td>@income.SenderName</td>
+                    <td>@income.Amount</td>-->
+                    <td>
+                        <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.IncomeID}"))">Edit</button>
+                    </td>
+                    <td>@income.LabelName</td>
+                    <td>@income.PaymentDate</td>
+                    <td>@income.Frequency</td>
+                    <td>@income.SenderName</td>
+                    <td>@income.Amount.ToString("£0.00")</td>
+                </tr>
             }
+
+
+
         </tbody>
+
     </table>
+
+    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">Add New</button>
 }
 
 @code {

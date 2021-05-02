@@ -1,6 +1,58 @@
-﻿@page "/income-form"
+﻿@page "/income-form/{id}"
+@using DissertationArtefact.Shared
+@inject HttpClient Http
 
-<h1>Login page</h1>
+<h1>Income form page</h1>
 
+@if (income == null)
+{
+    <p><em>Loading income</em></p>
+}
+else
+{
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Payment Date</th>
+                <th>Frequency</th>
+                <th>Sender</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    <td>@income.LabelName</td>
+                    <td>@income.PaymentDate</td>
+                    <td>@income.Frequency</td>
+                    <td>@income.SenderName</td>
+                    <td>@income.Amount.ToString("£0.00")</td>
+                </tr>
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+
+    [Parameter]
+    public string id { get; set; }
+
+    private Income income;
+    //private string ID;
+
+    protected override async Task OnInitializedAsync()
+    {
+     //   ID = "bcd8cbdb-d70e-454e-aa89-4688298f5cc4";
+        income = await Http.GetFromJsonAsync<Income>($"income/{id}");
+        if (income is null) 
+        {
+            income = new Income();
+        }
+        
+    }
+}
 
 
