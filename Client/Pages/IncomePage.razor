@@ -42,7 +42,7 @@ else
                 <td>@income.PaymentDate</td>
                 <td>@income.Frequency</td>
                 <td>@income.SenderName</td>
-                <td>£@income.Amount</td>
+                <td>@income.Amount.ToString("£0.00")</td>
             </tr>
             }
         </tbody>

@@ -36,7 +36,7 @@ else
             <td>@expense.Frequency</td>
             <td>@expense.Category</td>
             <td>@expense.Type</td>
-            <td>£@expense.Amount</td>
+            <td>@expense.Amount.ToString("£0.00")</td>
 
         </tr>
         }

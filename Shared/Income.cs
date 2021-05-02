@@ -13,6 +13,7 @@ namespace DissertationArtefact.Shared
 
         }
 
+        public Guid? IncomeID { get; set; }
         public string LabelName { get; set; }
         public double Amount { get; set; }
         public string SenderName { get; set; }

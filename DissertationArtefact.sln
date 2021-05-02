@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DissertationArtefact.Server", "Server\DissertationArtefact.Server.csproj", "{5C91DCCE-447B-47F9-BF48-D95629D80A26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DissertationArtefact.Server", "Server\DissertationArtefact.Server.csproj", "{5C91DCCE-447B-47F9-BF48-D95629D80A26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DissertationArtefact.Client", "Client\DissertationArtefact.Client.csproj", "{A91F5D53-098F-4B8F-A940-C23CB081969D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DissertationArtefact.Client", "Client\DissertationArtefact.Client.csproj", "{A91F5D53-098F-4B8F-A940-C23CB081969D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DissertationArtefact.Shared", "Shared\DissertationArtefact.Shared.csproj", "{414C9CF2-ACFD-40F7-A6E9-8707A83407CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DissertationArtefact.Shared", "Shared\DissertationArtefact.Shared.csproj", "{414C9CF2-ACFD-40F7-A6E9-8707A83407CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
