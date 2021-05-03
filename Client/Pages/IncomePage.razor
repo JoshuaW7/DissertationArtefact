@@ -7,7 +7,7 @@
 
 @if (incomes == null)
 {
-    <p><em>Loading income</em></p>
+    <p><i>Loading income...</i></p>
 }
 else
 {
@@ -15,12 +15,9 @@ else
     <table class="table">
         <thead>
             <tr>
-                <!--<th>@nameof(Income.LabelName)</th>
-                <th>@nameof(Income.Occurance)</th>
-                <th>@nameof(Income.PaymentDate)</th>
-                <th>@nameof(Income.SenderName)</th>
-                <th>@nameof(Income.Amount)</th>-->
-                <th></th>
+                <th>
+                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">Add New</button>
+                </th>
                 <th>Name</th>
                 <th>Payment Date</th>
                 <th>Frequency</th>
@@ -32,38 +29,58 @@ else
         <tbody>
             @foreach (var income in incomes)
             {
-                <tr>
-                    <!--<td>@income.LabelName</td>
-                    <td>@income.Occurance</td>
-                    <td>@income.PaymentDate</td>
-                    <td>@income.SenderName</td>
-                    <td>@income.Amount</td>-->
-                    <td>
-                        <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.IncomeID}"))">Edit</button>
-                    </td>
-                    <td>@income.LabelName</td>
-                    <td>@income.PaymentDate</td>
-                    <td>@income.Frequency</td>
-                    <td>@income.SenderName</td>
-                    <td>@income.Amount.ToString("£0.00")</td>
-                </tr>
+            <tr>
+                <td>
+                    <button class="btn btn-primary"
+                            @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.IncomeID}"))">
+                        Edit
+                    </button>
+                    <button class="btn btn-danger"
+                            @onclick="@((async () => await Delete(income)))">
+                        Delete
+                    </button>
+                </td>
+                <td>@income.LabelName</td>
+                <td>@income.PaymentDate</td>
+                <td>@income.Frequency</td>
+                <td>@income.SenderName</td>
+                <td style="text-align:right;">@income.Amount.ToString(currencyPref)</td>
+            </tr>
             }
 
-
-
         </tbody>
+        <tfoot>
+            <tr>
 
+                <td colspan="5" style="text-align:right;"><b>Total:</b> </td>
+                <td colspan="6" style="text-align:right;"> @incomes.Sum(i => i.Amount).ToString(currencyPref)</td>
+                
+            </tr>
+        </tfoot>
     </table>
+    <div>
+        
+    </div>
 
-    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">Add New</button>
 }
 
 @code {
-    private Income[] incomes;
+
+
+    private List<Income> incomes;
+
+    private string currencyPref = "£0.00";
 
     protected override async Task OnInitializedAsync()
     {
-        incomes = await Http.GetFromJsonAsync<Income[]>("Income");
+        incomes = await Http.GetFromJsonAsync<List<Income>>("Income");
     }
 
+    protected async Task Delete(Income income)
+    {
+        Console.WriteLine($"Deleting id:{income.IncomeID}");
+        var result = await Http.DeleteAsync($"income/{income.IncomeID}");
+
+        incomes.Remove(income);
+    }
 }

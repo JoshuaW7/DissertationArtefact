@@ -1,8 +1,9 @@
 ﻿@page "/income-form/{id}"
 @using DissertationArtefact.Shared
 @inject HttpClient Http
+@inject NavigationManager NavManager
 
-<h1>Income form page</h1>
+<h1>Income Form</h1>
 
 @if (income == null)
 {
@@ -11,26 +12,38 @@
 else
 {
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Payment Date</th>
-                <th>Frequency</th>
-                <th>Sender</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-                <tr>
-                    <td>@income.LabelName</td>
-                    <td>@income.PaymentDate</td>
-                    <td>@income.Frequency</td>
-                    <td>@income.SenderName</td>
-                    <td>@income.Amount.ToString("£0.00")</td>
-                </tr>
-        </tbody>
-    </table>
+    <div>
+        <label for="">Name</label>
+        <input @bind="@income.LabelName" />
+    </div>
+
+    <div>
+        <label for="">Payment Date</label>
+        <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" />
+    </div>
+
+    <div>
+        <label for="">Frequency</label>
+        <select @bind="income.Frequency">
+            <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
+            <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
+            <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
+            <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="">Sender</label>
+        <input @bind="@income.SenderName" />
+    </div>
+
+    <div>
+        <label for="">Amount</label>
+        <input @bind="@income.Amount" />
+    </div>
+
+    <!--Bootstrap button, look into syncfusion-->
+    <button class="btn btn-success" @onclick="@(async () => await Save())">OK</button>
 }
 
 
@@ -41,17 +54,34 @@ else
     public string id { get; set; }
 
     private Income income;
-    //private string ID;
 
     protected override async Task OnInitializedAsync()
     {
-     //   ID = "bcd8cbdb-d70e-454e-aa89-4688298f5cc4";
-        income = await Http.GetFromJsonAsync<Income>($"income/{id}");
-        if (income is null) 
+        if (id == new Guid().ToString())
         {
-            income = new Income();
+            income = new Income
+            {
+                Frequency = IncomeFrequencies.Monthly,
+                PaymentDate = DateTime.Now
+            };
         }
-        
+        else
+        {
+
+            income = await Http.GetFromJsonAsync<Income>($"income/{id}");
+
+            if (income is null)
+            {
+                //income = new Income();
+            }
+        }
+    }
+
+    protected async Task Save()
+    {
+        var result = await Http.PostAsJsonAsync("income", income, null);
+
+        NavManager.NavigateTo("income");
     }
 }
 
