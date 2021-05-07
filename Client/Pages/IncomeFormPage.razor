@@ -13,17 +13,17 @@ else
 {
 
     <div>
-        <label for="">Name</label>
+        <label for="">Name: </label>
         <input @bind="@income.LabelName" />
     </div>
 
     <div>
-        <label for="">Payment Date</label>
+        <label for="">Payment Date:</label>
         <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" />
     </div>
 
     <div>
-        <label for="">Frequency</label>
+        <label for="">Frequency: </label>
         <select @bind="income.Frequency">
             <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
             <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
@@ -33,17 +33,19 @@ else
     </div>
 
     <div>
-        <label for="">Sender</label>
+        <label for="">Sender: </label>
         <input @bind="@income.SenderName" />
     </div>
 
     <div>
-        <label for="">Amount</label>
+        <label for="">Amount: </label>
         <input @bind="@income.Amount" />
     </div>
 
     <!--Bootstrap button, look into syncfusion-->
+    <button class="btn btn-danger" @onclick="@(async () => await Cancel())">Cancel</button>
     <button class="btn btn-success" @onclick="@(async () => await Save())">OK</button>
+
 }
 
 
@@ -81,6 +83,11 @@ else
     {
         var result = await Http.PostAsJsonAsync("income", income, null);
 
+        NavManager.NavigateTo("income");
+    }
+
+    protected async Task Cancel()
+    {
         NavManager.NavigateTo("income");
     }
 }

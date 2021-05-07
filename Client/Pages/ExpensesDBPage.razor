@@ -1,0 +1,86 @@
+﻿@page "/expensesDB"
+@using DissertationArtefact.Shared
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<h1>Expenses</h1>
+
+@if (expenses == null)
+{
+    <p><em>Loading expenses database...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/expense-form/{new Guid()}"))">Add New</button>
+                </th>
+                <th>Expense Name</th>
+                <th>Payment Date</th>
+                <th>Frequency</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th>Amount</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var expense in expenses)
+            {
+                <tr>
+
+                    <td>
+                        <button class="btn btn-primary"
+                                @onclick="@(() => NavManager.NavigateTo($"/expense-form/{expense.Id}"))">
+                            Edit
+                        </button>
+                        <button class="btn btn-danger"
+                                @onclick="@((async () => await Delete(expense)))">
+                            Delete
+                        </button>
+                    </td>
+
+                    <td>@expense.LabelName</td>
+                    <td>@expense.PaymentDate</td>
+                    <td>@expense.Frequency</td>
+                    <td>@expense.Category</td>
+                    <td>@expense.Type</td>
+                    <td style="text-align:right;">@expense.Amount.ToString(currencyPref)</td>
+
+                </tr>
+            }
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="7" style="text-align:right;"><b>Total: @expenses.Sum(i => i.Amount).ToString(currencyPref)</b></td>
+            </tr>
+        </tfoot>
+    </table>
+}
+
+@code {
+    private List<Expense> expenses;
+    private User user;
+    private string currencyPref = "£0.00";
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var s = await Http.GetAsync("api/expense/user/6091a3f06dbeb16f2aa3abd4");
+        //Console.WriteLine(s);
+
+        user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
+
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
+    }
+
+    protected async Task Delete(Expense expense)
+    {
+        Console.WriteLine($"Deleting id:{expense.Id}");
+        var result = await Http.DeleteAsync($"expenses/{expense.Id}");
+
+        expenses.Remove(expense);
+    }
+}

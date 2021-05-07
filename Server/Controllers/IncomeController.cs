@@ -52,9 +52,9 @@ namespace DissertationArtefact.Server.Controllers
                 return BadRequest();
             }
 
-            string IncomesJSON = WinOS.File.ReadAllText(DataFile);
+            string incomesJSON = WinOS.File.ReadAllText(DataFile);
 
-            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(IncomesJSON);
+            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(incomesJSON);
 
             if (income.IncomeID is null || income.IncomeID.ToString().Length == 0)
             {
@@ -75,8 +75,8 @@ namespace DissertationArtefact.Server.Controllers
 
             }
 
-            IncomesJSON = JsonSerializer.Serialize(incomes);
-            WinOS.File.WriteAllText(DataFile, IncomesJSON);
+            incomesJSON = JsonSerializer.Serialize(incomes);
+            WinOS.File.WriteAllText(DataFile, incomesJSON);
 
             // Returns 200
             return new CreatedResult($"income/{income.IncomeID}", income);
@@ -125,13 +125,13 @@ namespace DissertationArtefact.Server.Controllers
                 return BadRequest();
             }
 
-            string IncomesJSON = WinOS.File.ReadAllText(DataFile);
+            string incomesJSON = WinOS.File.ReadAllText(DataFile);
 
-            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(IncomesJSON);
+            List<Income> incomes = JsonSerializer.Deserialize<List<Income>>(incomesJSON);
 
             var income = incomes.Where(i => i.IncomeID == new Guid(id)).FirstOrDefault();
 
-            return new OkObjectResult(income);
+            return NoContent();
 
         }
 

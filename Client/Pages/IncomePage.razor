@@ -51,10 +51,7 @@ else
         </tbody>
         <tfoot>
             <tr>
-
-                <td colspan="5" style="text-align:right;"><b>Total:</b> </td>
-                <td colspan="6" style="text-align:right;"> @incomes.Sum(i => i.Amount).ToString(currencyPref)</td>
-                
+                <td colspan="6" style="text-align:right;"> <b>Total: @incomes.Sum(i => i.Amount).ToString(currencyPref)</b></td>
             </tr>
         </tfoot>
     </table>

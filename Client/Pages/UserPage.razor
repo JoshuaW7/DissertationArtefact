@@ -1,0 +1,48 @@
+﻿@page "/user"
+@page "/user/{id}"
+
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using Microsoft.JSInterop;
+@using DissertationArtefact.Shared;
+@inject IJSRuntime JS
+
+<h1>User</h1>
+
+@if (!(user is null))
+{
+    <div>
+        <label>Name</label>
+        <input @bind="user.Name" />
+    </div>
+
+    <button class="btn btn-danger" @onclick="@(async () => await NavBack())">Back</button>
+    <button class="btn btn-primary" @onclick="@(async () => await Save())">OK</button>
+
+}
+
+
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+
+    private User user;
+    // no error handling
+    protected override async Task OnInitializedAsync()
+    {
+        user = await Http.GetFromJsonAsync<User>($"api/users/{id}");
+    }
+
+    private async Task Save()
+    {
+        await Http.PostAsJsonAsync("api/users", user);
+
+        await NavBack();
+    }
+
+    private async Task NavBack()
+    {
+        await JS.InvokeVoidAsync("window.history.go", -1);
+    }
+}

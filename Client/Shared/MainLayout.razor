@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject HttpClient Http
+@using DissertationArtefact.Shared;
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +9,22 @@
 
     <div class="main">
         <div class="top-row px-4">
-            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+            @if (!(user is null))
+            {
+                <NavLink class="nav-link" href="@link">
+                    <span title="@user.Email">@user.Name</span>
+                    <div class="ml-md-auto">User</div>
+                </NavLink>
+
+                <span title="@user.Email">@user.Name</span>
+            }
+            else
+            {
+                <NavLink class="nav-link" href="user">
+                    <span title="New User">User :-)</span>
+
+                </NavLink>
+            }
         </div>
 
         <div class="content px-4">
@@ -15,3 +32,15 @@
         </div>
     </div>
 </div>
+
+@code {
+    private string link;
+    private User user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string abc = "6091a3f06dbeb16f2aa3abd4";
+        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+        link = "user/" + user.Id;
+    }
+}

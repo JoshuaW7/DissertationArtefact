@@ -6,6 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
+using DissertationArtefact.Shared;
+using Microsoft.Extensions.Options;
+using DissertationArtefact.Server.Services;
 
 namespace DissertationArtefact.Server
 {
@@ -22,6 +25,15 @@ namespace DissertationArtefact.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            // requires using Microsoft.Extensions.Options
+            services.Configure<Pluto2021DatabaseSettings>(
+                Configuration.GetSection(nameof(Pluto2021DatabaseSettings)));
+
+            services.AddSingleton<IPluto2021DatabaseSettings>(sp =>
+                sp.GetRequiredService<IOptions<Pluto2021DatabaseSettings>>().Value);
+
+            services.AddSingleton<UserService>();
+            services.AddSingleton<ExpenseService>();
 
             services.AddControllersWithViews();
             services.AddRazorPages();

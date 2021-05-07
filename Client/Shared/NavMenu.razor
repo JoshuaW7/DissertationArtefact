@@ -1,6 +1,6 @@
 ﻿<div class="top-row pl-4 navbar navbar-dark">
     <a href="">
-        <img src="/logo512x512.png" width="40" height="40"/>
+        <img src="/logo512x512.png" width="40" height="40" />
     </a>
     <a class="navbar-brand" href="">Pluto</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -20,18 +20,27 @@
                 <span class="oi oi-plus" aria-hidden="true"></span> Income
             </NavLink>
         </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="expenses">
+        
+        
+        @*<li class="nav-item px-3">
+            <NavLink class="nav-link" href="expensesDB">
                 <span class="oi oi-plus" aria-hidden="true"></span> Expenses
             </NavLink>
-        </li>
+        </li>*@
+
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="goals" >
+            <NavLink class="nav-link" href="expensesDB">
+                <span class="oi oi-plus" aria-hidden="true"></span> Expenses DB
+            </NavLink>
+        </li>
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="goals">
                 <span class="oi oi-plus" aria-hidden="true"></span> Goals
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="achievements" >
+            <NavLink class="nav-link" href="achievements">
                 <span class="oi oi-badge" aria-hidden="true"></span> Achievements
             </NavLink>
         </li>

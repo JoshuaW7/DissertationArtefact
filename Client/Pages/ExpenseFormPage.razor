@@ -1,6 +1,118 @@
-﻿@page "/expense-form"
+﻿@page "/expense-form/{id}"
+@using DissertationArtefact.Shared
+@inject HttpClient Http
+@inject NavigationManager NavManager
 
-<h1>Login page</h1>
+<h1>Expense Form</h1>
+
+@if (expense == null)
+{
+    <p><em>Loading expense</em></p>
+}
+else
+{
+    <div>
+        <label for="">Expense Name: </label>
+        <input @bind="@expense.LabelName" />
+    </div>
+
+    <div>
+        <label for="">Payment Date:</label>
+        <input @bind="@expense.PaymentDate" @bind:format="yyyy-MM-dd" />
+    </div>
+
+    <div>
+        <label for="">Frequency: </label>
+        <select @bind="expense.Frequency">
+            <option value="@ExpenseFrequencies.Annually">@nameof(ExpenseFrequencies.Annually)</option>
+            <option value="@ExpenseFrequencies.Monthly">@nameof(ExpenseFrequencies.Monthly)</option>
+            <option value="@ExpenseFrequencies.Weekly">@nameof(ExpenseFrequencies.Weekly)</option>
+            <option value="@ExpenseFrequencies.OneTime">@nameof(ExpenseFrequencies.OneTime)</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="">Type: </label>
+        <select @bind="expense.Type">
+            <option value="@Types.Discretionary">@nameof(Types.Discretionary)</option>
+            <option value="@Types.Essential">@nameof(Types.Essential)</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="">Category: </label>
+        <select @bind="expense.Category">
+            <option value="@Categories.Bill">@nameof(Categories.Bill)</option>
+            <option value="@Categories.General">@nameof(Categories.General)</option>
+            <option value="@Categories.Entertainment">@nameof(Categories.Entertainment)</option>
+            <option value="@Categories.FoodandDrink">@nameof(Categories.FoodandDrink)</option>
+            <option value="@Categories.Transfer">@nameof(Categories.Transfer)</option>
+            <option value="@Categories.Travel">@nameof(Categories.Travel)</option>
+            <option value="@Categories.Groceries">@nameof(Categories.Groceries)</option>
+            <option value="@Categories.Shopping">@nameof(Categories.Shopping)</option>
+
+        </select>
+    </div>
+
+    <div>
+        <label for="">Amount: </label>
+        <input @bind="@expense.Amount" />
+    </div>
 
 
+
+    <!--Bootstrap button, look into syncfusion-->
+    <button class="btn btn-danger" @onclick="@(async () => await Cancel())">Cancel</button>
+    <button class="btn btn-success" @onclick="@(async () => await Save())">OK</button>
+
+}
+
+
+
+@code {
+
+    [Parameter]
+    public string id { get; set; }
+
+    private Expense expense;
+    private User user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string abc = "";
+        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+
+        if (id == new Guid().ToString())
+        {
+            expense = new Expense
+            {
+                Frequency = ExpenseFrequencies.OneTime,
+                PaymentDate = DateTime.Now,
+                UserId = user.Id
+            };
+        }
+        else
+        {
+
+            expense = await Http.GetFromJsonAsync<Expense>($"expense/{id}");
+
+            if (expense is null)
+            {
+                //expense = new Expense();
+            }
+        }
+    }
+
+    protected async Task Save()
+    {
+        var result = await Http.PostAsJsonAsync("expense", expense, null);
+
+        NavManager.NavigateTo("expensesDB");
+    }
+
+    protected async Task Cancel()
+    {
+        NavManager.NavigateTo("expenses");
+    }
+}
 
