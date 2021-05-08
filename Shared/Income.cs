@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 
 namespace DissertationArtefact.Shared
 {
@@ -8,12 +10,11 @@ namespace DissertationArtefact.Shared
     /// </summary>
     public class Income
     {
-        public Income()
-        {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
 
-        }
-
-        public Guid? IncomeID { get; set; }
+        public string Id { get; set; }
+        public string UserId { get; set; }
         //consider changing to IncomeName
         public string LabelName { get; set; }
         public double Amount { get; set; }

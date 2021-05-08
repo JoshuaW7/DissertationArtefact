@@ -42,6 +42,36 @@ namespace DissertationArtefact.Server.Controllers
             return new OkObjectResult(expenses);
             //return $"you sent me {id}";
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByID(string id)
+        {
+            Expense expense = expenseService.Get(id);
+            return new OkObjectResult(expense);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            expenseService.Remove(id);
+
+            return NoContent();
+        }
+
+        [HttpPost()]
+        public async Task<IActionResult> Post(Expense expense)
+        {
+            if (string.IsNullOrEmpty(expense.Id)) 
+            {
+                expenseService.Create(expense);
+            }
+            else
+            {
+                expenseService.Update(expense.Id, expense);
+            }
+
+            return new CreatedResult($"expense/{expense.Id}", expense);
+        }
     }
 }
 
@@ -81,40 +111,9 @@ namespace DissertationArtefact.Server.Controllers
 //            this.expenseService = null;
 //        }
 
-//        [HttpPost()]
-//        public async Task<IActionResult> Post(Expense expense)
-//        {
-//            if(expense.Id.Length == 0)
-//            {
-//                expenseService.Create(expense);
-//            }
-//            else
-//            {
-//                expenseService.Update(expense.Id, expense);
-//            }
 
-//            return new CreatedResult($"expenses/{expense.Id}", expense);
-//        }
 
-//[HttpDelete("{id}")]
-//public async Task<IActionResult> Delete(string id)
-//{
-//    string DataFile = @$"d:\temp\expenses.json";
 
-//    if (!WinOS.File.Exists(DataFile))
-//    {
-//        return BadRequest();
-//    }
-
-//    string expensesJSON = WinOS.File.ReadAllText(DataFile);
-
-//    List<Expense> expenses = JsonSerializer.Deserialize<List<Expense>>(expensesJSON);
-
-//    Expense expenseCurrent = expenses.Where(i => i.Id.ToString() == id).FirstOrDefault();
-//    if (expenseCurrent is null)
-//    {
-//        return NotFound();
-//    }
 
 // Changes when database is implemented...
 //expenses.Remove(expenseCurrent);
@@ -125,12 +124,7 @@ namespace DissertationArtefact.Server.Controllers
 //}
 
 
-//    [HttpGet("{id}")]
-//    public async Task<IActionResult> GetByID(string id)
-//    {
-//        Expense expense = expenseService.Get(id);
-//        return new OkObjectResult(expense);
-//    }
+
 
 //    [HttpGet("user/{id}")]
 //    public async Task<IActionResult> GetByUserID(string id)

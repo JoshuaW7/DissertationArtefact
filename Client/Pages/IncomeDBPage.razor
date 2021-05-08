@@ -1,0 +1,75 @@
+﻿@page "/incomeDB"
+@using DissertationArtefact.Shared
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<h1>Income</h1>
+
+@if (incomes == null)
+{
+    <p><i>Loading income...</i></p>
+}
+else
+{
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">Add New</button>
+                </th>
+                <th>Name</th>
+                <th>Payment Date</th>
+                <th>Frequency</th>
+                <th>Sender</th>
+                <th>Amount</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var income in incomes)
+            {
+            <tr>
+                <td>
+                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.Id}"))">Edit</button>
+                    <button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">Delete</button>
+                </td>
+                <td>@income.LabelName</td>
+                <td>@income.PaymentDate</td>
+                <td>@income.Frequency</td>
+                <td>@income.SenderName</td>
+                <td style="text-align:right;">@income.Amount.ToString(currencyPref)</td>
+            </tr>
+            }
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" style="text-align:right;"> <b>Total: @incomes.Sum(i => i.Amount).ToString(currencyPref)</b></td>
+            </tr>
+        </tfoot>
+    </table>
+}
+
+@code {
+
+
+    private List<Income> incomes;
+    private User user;
+    private string currencyPref = "£0.00";
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
+
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+    }
+
+    protected async Task Delete(Income income)
+    {
+        Console.WriteLine($"Deleting id:{income.Id}");
+        var result = await Http.DeleteAsync($"api/income/{income.Id}");
+
+        incomes.Remove(income);
+    }
+}

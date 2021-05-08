@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Content Remove="Pages\ExpensesPage.razor" />
+    <Content Remove="Pages\IncomePage.razor" />
   </ItemGroup>
 
   <ItemGroup>

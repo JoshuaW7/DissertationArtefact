@@ -34,6 +34,7 @@ namespace DissertationArtefact.Server
 
             services.AddSingleton<UserService>();
             services.AddSingleton<ExpenseService>();
+            services.AddSingleton<IncomeService>();
 
             services.AddControllersWithViews();
             services.AddRazorPages();

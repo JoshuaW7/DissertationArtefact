@@ -10,6 +10,7 @@ namespace DissertationArtefact.Shared
     {
         public string UsersCollectionName { get; set; }
         public string ExpensesCollectionName { get; set; }
+        public string IncomesCollectionName { get; set; }
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
     }
@@ -18,6 +19,7 @@ namespace DissertationArtefact.Shared
     {
         string UsersCollectionName { get; set; }
         string ExpensesCollectionName { get; set; }
+        string IncomesCollectionName { get; set; }
         string ConnectionString { get; set; }
         string DatabaseName { get; set; }
     }

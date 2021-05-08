@@ -48,7 +48,6 @@ else
                     <td>@expense.Category</td>
                     <td>@expense.Type</td>
                     <td style="text-align:right;">@expense.Amount.ToString(currencyPref)</td>
-
                 </tr>
             }
 
@@ -79,7 +78,7 @@ else
     protected async Task Delete(Expense expense)
     {
         Console.WriteLine($"Deleting id:{expense.Id}");
-        var result = await Http.DeleteAsync($"expenses/{expense.Id}");
+        var result = await Http.DeleteAsync($"api/expense/{expense.Id}");
 
         expenses.Remove(expense);
     }
