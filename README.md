@@ -1,6 +1,6 @@
 # DissertationArtefact
 # Tasks TODO:  
-- Scaffold remaining pages JS:25%
+- ~~Scaffold remaining pages JS:25%~~
 - Complete entity class definitions for expenses, goals, achievements, settings
 - Scaffold controllers per entity JW:10%
 - Add POST and PUT per controller JW:10% - added GetById Income
