@@ -18,7 +18,7 @@ namespace DissertationArtefact.Shared
         public string UserId { get; set; }
         //ExpenseName
         public string LabelName { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public Types Type { get; set; }
         public DateTime PaymentDate { get; set; }
         public ExpenseFrequencies Frequency { get; set; }

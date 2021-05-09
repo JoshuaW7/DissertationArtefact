@@ -1,6 +1,82 @@
 ﻿@page "/goals"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using Microsoft.JSInterop;
+@using DissertationArtefact.Shared;
+@inject IJSRuntime JS
 
 <h1>Goals</h1>
 <p>https://www.syncfusion.com/blazor-components</p>
 Here you will be able to view and interact with goals.
+
+@if(!(goal is null))
+{
+    <div>Goal: @goal.GoalName</div>
+    <div>Target Amount: @goal.TargetAmount</div>
+}
+
+<div>Months: @months</div>
+
+@if (!(intervals is null))
+{
+    <input type="range" min="0" max="100" step="1" value="@goal.Allocation"
+           @oninput="@((args) => goal.Allocation = Convert.ToDecimal( args.Value))" @onchange="AllocationChanged" />
+    <div>@goal.Allocation</div>
+    <tr>
+        <td>Interval </td>
+        <td>Amount to save </td>
+        <td>Saved so far  </td>
+    </tr>
+    foreach ((int, decimal, decimal) interval in intervals)
+    {
+        <tr>
+            <td>@DateTime.Now.AddMonths(@interval.Item1)</td>
+            <td>@interval.Item2</td>
+            <td>@interval.Item3</td>
+        </tr>
+
+    }
+
+    <img src="/goalchart.jpg" />
+}
+
+
+
+
+@code
+{
+    private User user;
+    private List<Goal> goals;
+    private List<Income> incomes;
+    private List<Expense> expenses;
+    private Goal goal;
+    private int months;
+    private PlutoFunctions plutoFunctions;
+    private List<(int, decimal, decimal)> intervals;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        string abc = "6091a3f06dbeb16f2aa3abd4";
+        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
+        goal = new Goal { GoalName = "Jersey Holiday", StartAmount = 0, Allocation = 100, TargetAmount = 2000, GoalCategory = GoalCategories.Holiday };
+        plutoFunctions = new PlutoFunctions();
+        months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
+
+        intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+
+
+    }
+
+    private void AllocationChanged()
+    {
+        months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
+        intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+    }
+
+}
 

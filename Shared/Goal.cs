@@ -13,22 +13,21 @@ namespace DissertationArtefact.Shared
 
         }
 
+        // How much disposable income to be set aside for goal (0-100%)
+        public decimal Allocation { get; set; }
         public string GoalName { get; set; }
-        public double GoalAmount { get; set; }
-        public double StartingAmount { get; set; }
         public GoalCategories GoalCategory { get; set; }
-        
+        public decimal TargetAmount { get; set; }
+        public decimal StartAmount { get; set; }
+        // To be calculated
+        public TimeSpan? TimeToGoal { get; set; }
 
     }
     public enum GoalCategories
     {
-        General,
-        Shopping,
-        Groceries,
-        FoodandDrink,
-        Entertainment,
-        Travel,
-        Bill,
-        Transfer
+        Holiday,
+        HouseDeposit,
+        Wedding,
+        TuitionFees
     }
 }
