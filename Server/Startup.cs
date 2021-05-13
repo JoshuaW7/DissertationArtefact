@@ -9,6 +9,7 @@ using System.Linq;
 using DissertationArtefact.Shared;
 using Microsoft.Extensions.Options;
 using DissertationArtefact.Server.Services;
+using Syncfusion.Blazor;
 
 namespace DissertationArtefact.Server
 {
@@ -38,6 +39,8 @@ namespace DissertationArtefact.Server
 
             services.AddControllersWithViews();
             services.AddRazorPages();
+
+            services.AddSyncfusionBlazor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

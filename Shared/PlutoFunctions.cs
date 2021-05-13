@@ -37,13 +37,16 @@ namespace DissertationArtefact.Shared
             decimal disposableIncome = income - expsenses;
             decimal goalAmount = goal.TargetAmount - goal.StartAmount;
 
+
+
             while (goalAmount > 0)
             {
                 months++;
-                goalAmount -= disposableIncome * (allocation/100);
+                goalAmount -= disposableIncome * (allocation / 100);
             }
 
             return months;
+            
         }
 
         public List<(int, decimal, decimal)> Intervals(Goal goal, List<Income> incomes, List<Expense> expenses, decimal allocationPercentage = 100)
@@ -52,7 +55,7 @@ namespace DissertationArtefact.Shared
 
             int months = 0;
 
-            //int timeToGoal = amount of time => number of months takes to reduce goal amount to zero from allocation from disposable income
+            //int timeToGoal = amount of time => number of months takes to reduce goal amount to zero from allocation from disposable income 
             // 
 
             decimal income = incomes.Sum(i => i.Amount);
@@ -74,6 +77,20 @@ namespace DissertationArtefact.Shared
 
             return intervals;
         }
+
+        public decimal DisposableIncome(List<Income> incomes, List<Expense> expenses)
+        {
+            decimal income = incomes.Sum(i => i.Amount);
+            decimal expsenses = expenses.Sum(e => e.Amount);
+            // How much is left over after expenses (Consider case for other goals having allocation)
+            decimal disposableIncome = (income - expsenses);
+            // How much to allocate from disposable income 
+
+            return disposableIncome;
+        }
     }
 
 }
+// Should it be calculated on the reduction of discretionary expenses, not allocation of disposable income
+// Okay to subtract expenses from income, but only if essential!
+// 

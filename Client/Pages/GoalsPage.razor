@@ -3,13 +3,39 @@
 @inject NavigationManager NavManager
 @using Microsoft.JSInterop;
 @using DissertationArtefact.Shared;
+@using Syncfusion.Blazor.Charts;
 @inject IJSRuntime JS
 
-<h1>Goals</h1>
-<p>https://www.syncfusion.com/blazor-components</p>
-Here you will be able to view and interact with goals.
 
-@if(!(goal is null))
+<h1>Goals</h1>
+<p>
+    https://www.syncfusion.com/blazor-components
+</p>
+<p>
+    https://blazor.syncfusion.com/demos/chart/spline-area?theme=bootstrap4
+</p>
+
+    Here you will be able to view and interact with goals.
+
+
+<SfChart Title="Olympic Medals">
+    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+
+    <ChartSeriesCollection>
+        <ChartSeries DataSource="@MedalDetails" Opacity="0.5" XName="X" YName="Y" Type="ChartSeriesType.SplineArea">
+        </ChartSeries>
+        <ChartSeries DataSource="@MedalDetails" Opacity="0.5" XName="X" YName="Z" Type="ChartSeriesType.SplineArea">
+        </ChartSeries>
+        <ChartSeries DataSource="@MedalDetails" Opacity="0.5" XName="X" YName="A" Type="ChartSeriesType.SplineArea">
+        </ChartSeries>
+    </ChartSeriesCollection>
+</SfChart>
+
+
+
+
+
+@if (!(goal is null))
 {
     <div>Goal: @goal.GoalName</div>
     <div>Target Amount: @goal.TargetAmount</div>
@@ -19,23 +45,30 @@ Here you will be able to view and interact with goals.
 
 @if (!(intervals is null))
 {
-    <input type="range" min="0" max="100" step="1" value="@goal.Allocation"
-           @oninput="@((args) => goal.Allocation = Convert.ToDecimal( args.Value))" @onchange="AllocationChanged" />
+    <input type="range" min="1" max="100" step="1" value="@goal.Allocation"
+           @oninput="@((args) => goal.Allocation = Convert.ToDecimal(args.Value))" @onchange="AllocationChanged" />
     <div>@goal.Allocation</div>
-    <tr>
-        <td>Interval </td>
-        <td>Amount to save </td>
-        <td>Saved so far  </td>
-    </tr>
-    foreach ((int, decimal, decimal) interval in intervals)
-    {
-        <tr>
-            <td>@DateTime.Now.AddMonths(@interval.Item1)</td>
-            <td>@interval.Item2</td>
-            <td>@interval.Item3</td>
-        </tr>
 
-    }
+    <table class="table" style="">
+        <thead>
+            <tr>
+                <th><b>Interval </b></th>
+                <th><b>Amount to save </b></th>
+                <th><b>Saved so far  </b></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach ((int, decimal, decimal) interval in intervals)
+            {
+                <tr>
+                    <td>@DateTime.Now.AddMonths(@interval.Item1)</td>
+                    <td>@interval.Item2</td>
+                    <td>@interval.Item3</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
     <img src="/goalchart.jpg" />
 }
@@ -55,6 +88,7 @@ Here you will be able to view and interact with goals.
     private List<(int, decimal, decimal)> intervals;
 
 
+
     protected override async Task OnInitializedAsync()
     {
 
@@ -68,15 +102,60 @@ Here you will be able to view and interact with goals.
         months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
 
         intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+        UpdateCollection();
+
+    }
+
+    private void UpdateCollection()
+    {
+        MedalDetails = new List<ChartData>();
+        decimal disposableIncome = plutoFunctions.DisposableIncome(incomes, expenses);
+        decimal accruedIncome = 0;
 
 
+        foreach ((int, decimal, decimal) interval in intervals)
+        {
+            accruedIncome += disposableIncome;
+            MedalDetails.Add(new ChartData { X = interval.Item1, Y = interval.Item2, Z = interval.Item3, A = accruedIncome});
+
+            //DateTime.Now.AddMonths(interval.Item1)
+            //interval.Item2
+            //interval.Item3
+
+
+        }
     }
 
     private void AllocationChanged()
     {
         months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
         intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+
+        UpdateCollection();
     }
 
-}
+    public class ChartData
+    {
+        public int X { get; set; }
+        public decimal Y { get; set; }
+        public decimal Z { get; set; }
+        public decimal A { get; set; }
+    }
 
+    public List<ChartData> MedalDetails = new List<ChartData>
+    {
+        //new ChartData { X= "South Korea", Y= 39.4 },
+        //new ChartData { X= "India", Y= 61.3 },
+        //new ChartData { X= "Pakistan", Y= 20.4 },
+        //new ChartData { X= "Germany", Y= 65.1 },
+        //new ChartData { X= "Australia", Y= 15.8 },
+        //new ChartData { X= "Italy", Y= 29.2 },
+        //new ChartData { X= "United Kingdom", Y= 44.6 },
+        //new ChartData { X= "Saudi Arabia", Y= 9.7 },
+        //new ChartData { X= "Russia", Y= 40.8 },
+        //new ChartData { X= "Mexico", Y= 31 },
+        //new ChartData { X= "Brazil", Y= 75.9 },
+        //new ChartData { X= "China", Y= 51.4 }
+    };
+
+}
