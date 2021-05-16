@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager NavManager
 
-<h1>Expense Form</h1>
+
 
 @if (expense == null)
 {
@@ -11,6 +11,16 @@
 }
 else
 {
+
+    <h1>Expense Form                         
+        <button class="btn btn-danger"
+            @onclick="@((async () => await Delete(expense)))">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                <path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+            </svg>
+        </button>
+    </h1>
+
     <div>
         <label for="">Expense Name: </label>
         <input @bind="@expense.LabelName" />
@@ -41,16 +51,14 @@ else
 
     <div>
         <label for="">Category: </label>
-        <select @bind="expense.Category">
-            <option value="@Categories.Bill">@nameof(Categories.Bill)</option>
-            <option value="@Categories.General">@nameof(Categories.General)</option>
-            <option value="@Categories.Entertainment">@nameof(Categories.Entertainment)</option>
-            <option value="@Categories.FoodandDrink">@nameof(Categories.FoodandDrink)</option>
-            <option value="@Categories.Transfer">@nameof(Categories.Transfer)</option>
-            <option value="@Categories.Travel">@nameof(Categories.Travel)</option>
-            <option value="@Categories.Groceries">@nameof(Categories.Groceries)</option>
-            <option value="@Categories.Shopping">@nameof(Categories.Shopping)</option>
 
+        <select @bind="expense.Category">
+            @foreach (Categories category in (Categories[])Enum.GetValues(typeof(Categories)))
+            {
+
+                <option value="@category">@category</option>
+
+            }
         </select>
     </div>
 
@@ -62,8 +70,8 @@ else
 
 
     <!--Bootstrap button, look into syncfusion-->
-    <button class="btn btn-danger" @onclick="@(async () => await Cancel())">Cancel</button>
-    <button class="btn btn-success" @onclick="@(async () => await Save())">OK</button>
+    <button class="btn btn-primary" @onclick="@(async () => await Cancel())">Back</button>
+    <button class="btn btn-success" @onclick="@(async () => await Save())">Save</button>
 
 }
 
@@ -76,11 +84,13 @@ else
 
     private Expense expense;
     private User user;
+    private List<Expense> expenses;
 
     protected override async Task OnInitializedAsync()
     {
         string abc = "6091a3f06dbeb16f2aa3abd4";
         user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
 
         if (id == new Guid().ToString()) //(string.IsNullOrEmpty(id)) ...not sure what this is for.. might be tired eyes
         {
@@ -113,6 +123,14 @@ else
     protected async Task Cancel()
     {
         NavManager.NavigateTo("expensesDB");
+    }
+
+    protected async Task Delete(Expense expense)
+    {
+        Console.WriteLine($"Deleting id:{expense.Id}");
+        var result = await Http.DeleteAsync($"api/expense/{expense.Id}");
+
+        expenses.Remove(expense);
     }
 }
 

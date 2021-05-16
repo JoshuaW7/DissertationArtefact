@@ -31,16 +31,9 @@ namespace DissertationArtefact.Server.Controllers
         {
             _logger.LogDebug("Got here !");
 
-            //var expenses = new List<Expense>()
-            //{
-            //    new Expense{Amount=100},
-            //    new Expense{Amount=200}
-            //};
-
             List<Expense> expenses = expenseService.Get(new User { Id = id });
 
             return new OkObjectResult(expenses);
-            //return $"you sent me {id}";
         }
 
         [HttpGet("{id}")]

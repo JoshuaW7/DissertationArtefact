@@ -1,161 +1,73 @@
 ﻿@page "/goals"
+@using DissertationArtefact.Shared
 @inject HttpClient Http
 @inject NavigationManager NavManager
-@using Microsoft.JSInterop;
-@using DissertationArtefact.Shared;
-@using Syncfusion.Blazor.Charts;
-@inject IJSRuntime JS
-
-
-<h1>Goals</h1>
-<p>
-    https://www.syncfusion.com/blazor-components
-</p>
-<p>
-    https://blazor.syncfusion.com/demos/chart/spline-area?theme=bootstrap4
-</p>
-
-    Here you will be able to view and interact with goals.
-
-
-<SfChart Title="Olympic Medals">
-    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
-
-    <ChartSeriesCollection>
-        <ChartSeries DataSource="@MedalDetails" Opacity="0.5" XName="X" YName="Y" Type="ChartSeriesType.SplineArea">
-        </ChartSeries>
-        <ChartSeries DataSource="@MedalDetails" Opacity="0.5" XName="X" YName="Z" Type="ChartSeriesType.SplineArea">
-        </ChartSeries>
-        <ChartSeries DataSource="@MedalDetails" Opacity="0.5" XName="X" YName="A" Type="ChartSeriesType.SplineArea">
-        </ChartSeries>
-    </ChartSeriesCollection>
-</SfChart>
 
 
 
-
-
-@if (!(goal is null))
+@if (goals == null)
 {
-    <div>Goal: @goal.GoalName</div>
-    <div>Target Amount: @goal.TargetAmount</div>
+    <p><em>...</em></p>
 }
-
-<div>Months: @months</div>
-
-@if (!(intervals is null))
+else
 {
-    <input type="range" min="1" max="100" step="1" value="@goal.Allocation"
-           @oninput="@((args) => goal.Allocation = Convert.ToDecimal(args.Value))" @onchange="AllocationChanged" />
-    <div>@goal.Allocation</div>
+    <h1>Goals 
+        <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/goal"))">
+            <span class="oi oi-plus" aria-hidden="true"></span>
+        </button>
+    </h1>
+    
+    foreach (var goal in goals)
+    {
+        
+        <NavLink class="nav-link" href="@($"goal/{goal.Id}")">
+            <span aria-hidden="true"></span>
+            <button class="btn btn-info">
+                <div>@goal.GoalName</div>
+                <div>£@goal.TargetAmount</div>
+            </button>
+        </NavLink>
+    }
 
-    <table class="table" style="">
-        <thead>
-            <tr>
-                <th><b>Interval </b></th>
-                <th><b>Amount to save </b></th>
-                <th><b>Saved so far  </b></th>
-            </tr>
-        </thead>
 
-        <tbody>
-            @foreach ((int, decimal, decimal) interval in intervals)
-            {
-                <tr>
-                    <td>@DateTime.Now.AddMonths(@interval.Item1)</td>
-                    <td>@interval.Item2</td>
-                    <td>@interval.Item3</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <img src="/goalchart.jpg" />
 }
 
 
+@code {
 
+    [Parameter]
+    public string id { get; set; }
 
-@code
-{
     private User user;
     private List<Goal> goals;
     private List<Income> incomes;
     private List<Expense> expenses;
     private Goal goal;
-    private int months;
     private PlutoFunctions plutoFunctions;
-    private List<(int, decimal, decimal)> intervals;
-
 
 
     protected override async Task OnInitializedAsync()
     {
-
         string abc = "6091a3f06dbeb16f2aa3abd4";
         user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+        goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{user.Id}");
 
-        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
-        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
-        goal = new Goal { GoalName = "Jersey Holiday", StartAmount = 0, Allocation = 100, TargetAmount = 2000, GoalCategory = GoalCategories.Holiday };
-        plutoFunctions = new PlutoFunctions();
-        months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
+        //if (id == new Guid().ToString()) //(string.IsNullOrEmpty(id)) ...not sure what this is for.. might be tired eyes
+        //{
+        //    goal = new Goal
+        //    {
+        //        CreationDate = DateTime.Now,
+        //        UserId = user.Id
+        //    };
+        //}
+        //else
+        //{
+        //    goal = await Http.GetFromJsonAsync<Goal>($"api/goal/{id}");
 
-        intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
-        UpdateCollection();
-
+        //    if (goal is null)
+        //    {
+        //        //expense = new Expense();
+        //    }
+        //}
     }
-
-    private void UpdateCollection()
-    {
-        MedalDetails = new List<ChartData>();
-        decimal disposableIncome = plutoFunctions.DisposableIncome(incomes, expenses);
-        decimal accruedIncome = 0;
-
-
-        foreach ((int, decimal, decimal) interval in intervals)
-        {
-            accruedIncome += disposableIncome;
-            MedalDetails.Add(new ChartData { X = interval.Item1, Y = interval.Item2, Z = interval.Item3, A = accruedIncome});
-
-            //DateTime.Now.AddMonths(interval.Item1)
-            //interval.Item2
-            //interval.Item3
-
-
-        }
-    }
-
-    private void AllocationChanged()
-    {
-        months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
-        intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
-
-        UpdateCollection();
-    }
-
-    public class ChartData
-    {
-        public int X { get; set; }
-        public decimal Y { get; set; }
-        public decimal Z { get; set; }
-        public decimal A { get; set; }
-    }
-
-    public List<ChartData> MedalDetails = new List<ChartData>
-    {
-        //new ChartData { X= "South Korea", Y= 39.4 },
-        //new ChartData { X= "India", Y= 61.3 },
-        //new ChartData { X= "Pakistan", Y= 20.4 },
-        //new ChartData { X= "Germany", Y= 65.1 },
-        //new ChartData { X= "Australia", Y= 15.8 },
-        //new ChartData { X= "Italy", Y= 29.2 },
-        //new ChartData { X= "United Kingdom", Y= 44.6 },
-        //new ChartData { X= "Saudi Arabia", Y= 9.7 },
-        //new ChartData { X= "Russia", Y= 40.8 },
-        //new ChartData { X= "Mexico", Y= 31 },
-        //new ChartData { X= "Brazil", Y= 75.9 },
-        //new ChartData { X= "China", Y= 51.4 }
-    };
-
 }

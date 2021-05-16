@@ -15,13 +15,13 @@ namespace DissertationArtefact.Shared
 
         public string Id { get; set; }
         public string UserId { get; set; }
-        //consider changing to IncomeName
         public string LabelName { get; set; }
         public decimal Amount { get; set; }
         public string SenderName { get; set; }
         public DateTime PaymentDate { get; set; }
         public IncomeFrequencies Frequency { get; set; }
-        //optional end date?
+        public int? NumberOfPayments { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 
     public enum IncomeFrequencies {
@@ -31,4 +31,5 @@ namespace DissertationArtefact.Shared
         Annually
 
     }
+
 }

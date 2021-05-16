@@ -20,7 +20,7 @@ namespace DissertationArtefact.Shared
         public string LabelName { get; set; }
         public decimal Amount { get; set; }
         public Types Type { get; set; }
-        public DateTime PaymentDate { get; set; }
+        public DateTime? PaymentDate { get; set; }
         public ExpenseFrequencies Frequency { get; set; }
         public Categories Category { get; set; }
         //PaymentEndDate and StartDate?
@@ -38,6 +38,7 @@ namespace DissertationArtefact.Shared
     public enum ExpenseFrequencies
     {
         OneTime,
+        Daily,
         Weekly,
         Monthly,
         Annually
@@ -52,6 +53,9 @@ namespace DissertationArtefact.Shared
         Entertainment, 
         Travel, 
         Bill, 
-        Transfer
+        Transfer,
+        Investment,
+        Cleaning,
+        MedicalHealth
     }
 }

@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <Content Remove="Pages\ExpensesPage.razor" />
+    <Content Remove="Pages\GoalFormPage - Copy.razor" />
+    <Content Remove="Pages\GoalsPage - Copy.razor" />
     <Content Remove="Pages\IncomePage.razor" />
   </ItemGroup>
 

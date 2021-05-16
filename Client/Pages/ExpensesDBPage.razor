@@ -15,14 +15,17 @@ else
         <thead>
             <tr>
                 <th>
-                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/expense-form/{new Guid()}"))">Add New</button>
+                    @*Add button*@
+                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/expense-form/{new Guid()}"))">
+                        <span class="oi oi-plus" aria-hidden="true"></span>
+                    </button>
                 </th>
-                <th>Expense Name</th>
+                <th>Name</th>
                 <th>Payment Date</th>
                 <th>Frequency</th>
                 <th>Category</th>
                 <th>Type</th>
-                <th>Amount</th>
+                <th style="text-align:right;">Amount</th>
 
             </tr>
         </thead>
@@ -30,18 +33,12 @@ else
             @foreach (var expense in expenses)
             {
                 <tr>
-
                     <td>
                         <button class="btn btn-primary"
                                 @onclick="@(() => NavManager.NavigateTo($"/expense-form/{expense.Id}"))">
-                            Edit
-                        </button>
-                        <button class="btn btn-danger"
-                                @onclick="@((async () => await Delete(expense)))">
-                            Delete
+                            <span class="oi oi-pencil" aria-hidden="true"></span>
                         </button>
                     </td>
-
                     <td>@expense.LabelName</td>
                     <td>@expense.PaymentDate</td>
                     <td>@expense.Frequency</td>
@@ -56,14 +53,105 @@ else
             <tr>
                 <td colspan="7" style="text-align:right;"><b>Total: @expenses.Sum(i => i.Amount).ToString(currencyPref)</b></td>
             </tr>
+            <tr>
+                <td colspan="7" style="text-align:right;"><b>Disposable Income: £@plutoFunctions.DisposableIncome(incomes, expenses)</b></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <input type="range" min="12" max="60" step="1" value="@months"
+           @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Income</th>
+                <th>Expenses</th>
+                <th>Disposable Income</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in incExptDict)
+            {
+                <tr>
+
+
+                    <td>@i.Item1</td>
+                    <td>@i.Item2 </td>
+                    <td>@i.Item3</td>
+                    <td>@i.Item4</td>
+                    <td>@i.Item5</td>
+                </tr>
+            }
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td><b>All Expenses: </b></td>
+                <td><b>@incExptDict.Sum(i => i.Item3)</b></td>
+                <td><b>@incExptDict.Sum(i => i.Item4)</b></td>
+                <td><b>@incExptDict.Sum(i => i.Item5)</b></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Income</th>
+                <th>Expenses</th>
+                <th>Disposable Income</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in incExptEssentialsDict)
+            {
+                <tr>
+
+
+                    <td>@i.Item1</td>
+                    <td>@i.Item2 </td>
+                    <td>@i.Item3</td>
+                    <td>@i.Item4</td>
+                    <td>@i.Item5</td>
+                </tr>
+            }
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td><b>Essential Expenses: </b></td>
+                <td><b>@incExptEssentialsDict.Sum(i => i.Item3)</b></td>
+                <td><b>@incExptEssentialsDict.Sum(i => i.Item4)</b></td>
+                <td><b>@incExptEssentialsDict.Sum(i => i.Item5)</b></td>
+            </tr>
         </tfoot>
     </table>
 }
 
 @code {
     private List<Expense> expenses;
+    private List<Income> incomes;
+    private PlutoFunctions plutoFunctions;
     private User user;
     private string currencyPref = "£0.00";
+
+    private Dictionary<(int, int), decimal> projectedExpense;
+    private Dictionary<(int, int), decimal> projectedIncome;
+
+    List<(int, int, decimal, decimal, decimal)> incExptDict;
+    List<(int, int, decimal, decimal, decimal)> incExptEssentialsDict;
+
+    private int months = 12;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,8 +159,11 @@ else
         //Console.WriteLine(s);
 
         user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
-
+        plutoFunctions = new PlutoFunctions();
         expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+
+        ProjectionChanged();
     }
 
     protected async Task Delete(Expense expense)
@@ -82,4 +173,12 @@ else
 
         expenses.Remove(expense);
     }
+
+    protected void ProjectionChanged()
+    {
+        incExptDict = plutoFunctions.IncomeExpenseProjection(months, incomes, expenses, new Types[] { Types.Essential, Types.Discretionary });
+        incExptEssentialsDict = plutoFunctions.IncomeExpenseProjection(months, incomes, expenses, new Types[] { Types.Essential });
+    }
+
+
 }

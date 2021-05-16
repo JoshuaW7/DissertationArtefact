@@ -3,48 +3,57 @@
 @inject HttpClient Http
 @inject NavigationManager NavManager
 
-<h1>Income Form</h1>
+
 
 @if (income == null)
 {
-    <p><em>Loading income</em></p>
+<p><em>Loading income</em></p>
 }
 else
 {
 
-    <div>
-        <label for="">Income Name: </label>
-        <input @bind="@income.LabelName" />
-    </div>
+<h1>Income Form
+    <button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+            <path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+        </svg>
+    </button>
+</h1>
 
-    <div>
-        <label for="">Payment Date:</label>
-        <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" />
-    </div>
 
-    <div>
-        <label for="">Frequency: </label>
-        <select @bind="income.Frequency">
-            <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
-            <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
-            <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
-            <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
-        </select>
-    </div>
+<div>
+    <label for="">Income Name: </label>
+    <input @bind="@income.LabelName" />
+</div>
 
-    <div>
-        <label for="">Sender: </label>
-        <input @bind="@income.SenderName" />
-    </div>
+<div>
+    <label for="">Payment Date:</label>
+    <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" />
+</div>
 
-    <div>
-        <label for="">Amount: </label>
-        <input @bind="@income.Amount" />
-    </div>
+<div>
+    <label for="">Frequency: </label>
+    <select @bind="income.Frequency">
+        <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
+        <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
+        <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
+        <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
+    </select>
+</div>
 
-    <!--Bootstrap button, look into syncfusion-->
-    <button class="btn btn-danger" @onclick="@(async () => await Cancel())">Cancel</button>
-    <button class="btn btn-success" @onclick="@(async () => await Save())">OK</button>
+<div>
+    <label for="">Sender: </label>
+    <input @bind="@income.SenderName" />
+</div>
+
+<div>
+    <label for="">Amount: </label>
+    <input @bind="@income.Amount" />
+</div>
+
+ <!--Bootstrap button, look into syncfusion-->
+<button class="btn btn-primary" @onclick="@(async () => await Cancel())">Back</button>
+<button class="btn btn-success" @onclick="@(async () => await Save())">Save</button>
 
 }
 
@@ -55,6 +64,7 @@ else
     [Parameter]
     public string id { get; set; }
 
+    private List<Income> incomes;
     private Income income;
     private User user;
 
@@ -62,6 +72,7 @@ else
     {
         string abc = "6091a3f06dbeb16f2aa3abd4";
         user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
 
         if (id == new Guid().ToString())
         {
@@ -92,6 +103,14 @@ else
 
     protected async Task Cancel()
     {
+        NavManager.NavigateTo("incomeDB");
+    }
+
+    protected async Task Delete(Income income)
+    {
+        Console.WriteLine($"Deleting id:{income.Id}");
+        var result = await Http.DeleteAsync($"api/income/{income.Id}");
+        incomes.Remove(income);
         NavManager.NavigateTo("incomeDB");
     }
 }

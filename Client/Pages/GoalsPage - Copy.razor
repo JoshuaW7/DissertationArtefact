@@ -1,0 +1,217 @@
+﻿@page "/goals"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using Microsoft.JSInterop;
+@using DissertationArtefact.Shared;
+@using Syncfusion.Blazor.Charts;
+@inject IJSRuntime JS
+
+
+<h1>Goals</h1>
+<h2>
+    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/goal-form/{goal.Id}"))">Edit</button>
+    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/goal-form/{new Guid()}"))">Add New</button>
+</h2>
+
+@if (!(goal is null))
+{
+    <div>Goal: @goal.GoalName</div>
+    <div>Target Amount: @goal.TargetAmount</div>
+}
+
+
+
+<SfChart Title="Goal">
+    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+
+    <ChartSeriesCollection>
+        <ChartSeries DataSource="@GoalCurrent" Opacity="0.6" XName="Interval" YName="Amount" Type="ChartSeriesType.SplineArea" Fill="Red">
+        </ChartSeries>
+        <ChartSeries DataSource="@GoalPotential" Opacity="0.6" XName="Interval" YName="Amount" Type="ChartSeriesType.SplineArea" Fill="Blue">
+        </ChartSeries>
+        <ChartSeries DataSource="@GoalAmount" Name="Goal" XName="Interval" Width="2"
+                     Opacity="0.7" YName="Amount" Type="ChartSeriesType.Line" Fill="Black">
+        </ChartSeries>
+    </ChartSeriesCollection>
+</SfChart>
+
+
+
+
+
+
+<div>Months: <b>@months</b></div>
+
+@if (!(intervals is null))
+{
+    <input type="range" min="1" max="100" step="1" value="@goal.Allocation"
+           @oninput="@((args) => goal.Allocation = Convert.ToDecimal(args.Value))" @onchange="AllocationChanged" />
+    <div>Allocation: <b>@goal.Allocation%</b></div>
+
+    <table class="table" style="">
+        <thead>
+            <tr>
+                <th><b>Interval </b></th>
+                <th><b>Amount to save </b></th>
+                <th><b>Saved so far  </b></th>
+                
+</tr>
+        </thead>
+
+        <tbody>
+            @foreach ((int, decimal, decimal) interval in intervals)
+            {
+                <tr>
+                    <td>@DateTime.Now.AddMonths(@interval.Item1)</td>
+                    <td>@interval.Item2</td>
+                    <td>@interval.Item3</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+
+@code
+{
+    private User user;
+    private List<Goal> goals;
+    private List<Income> incomes;
+    private List<Expense> expenses;
+    private Goal goal;
+    private int months;
+    private PlutoFunctions plutoFunctions;
+    private List<(int, decimal, decimal)> intervals;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        string abc = "6091a3f06dbeb16f2aa3abd4";
+        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
+
+        goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{user.Id}");
+        if (goals.Count() == 0)
+        {
+            goal = new Goal { GoalName = "Holiday", StartAmount = 0, Allocation = 100, TargetAmount = 900, GoalCategory = GoalCategories.Holiday, UserId = user.Id };
+            var response = await Http.PostAsJsonAsync<Goal>("api/goal", goal, null);
+            goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{user.Id}");
+        }
+        else
+        {
+            goal = goals.First();
+        }
+
+
+        plutoFunctions = new PlutoFunctions();
+        months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
+
+        intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+        UpdateCollection();
+
+    }
+
+    private void UpdateCollection()
+    {
+        MedalDetails = new List<ChartData>();
+        decimal disposableIncome = plutoFunctions.DisposableIncome(incomes, expenses);
+        decimal accruedIncome = 0;
+
+
+        foreach ((int, decimal, decimal) interval in intervals)
+        {
+            if (accruedIncome <= goal.TargetAmount)
+            {
+                accruedIncome += disposableIncome;
+            }
+
+            MedalDetails.Add(new ChartData { X = interval.Item1, Y = interval.Item2, Z = interval.Item3, A = accruedIncome });
+
+            //DateTime.Now.AddMonths(interval.Item1)
+            //interval.Item2
+            //interval.Item3
+
+
+        }
+    }
+
+    private void AllocationChanged()
+    {
+        months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
+        intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+
+        UpdateCollection();
+    }
+
+    public class ChartData
+    {
+        public int X { get; set; }
+        public decimal Y { get; set; }
+        public decimal Z { get; set; }
+        public decimal A { get; set; }
+    }
+
+    public class IntervalAmount
+    {
+        public int Interval { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public List<IntervalAmount> GoalAmount = new List<IntervalAmount>
+{
+            new IntervalAmount {Interval = 1, Amount = 900},
+            new IntervalAmount {Interval = 2, Amount = 900},
+            new IntervalAmount {Interval = 3, Amount = 900},
+            new IntervalAmount {Interval = 4, Amount = 900},
+            new IntervalAmount {Interval = 5, Amount = 900},
+            new IntervalAmount {Interval = 6, Amount = 900},
+            new IntervalAmount {Interval = 7, Amount = 900},
+            new IntervalAmount {Interval = 8, Amount = 900},
+            new IntervalAmount {Interval = 9, Amount = 900},
+            new IntervalAmount {Interval = 10, Amount = 900},
+            new IntervalAmount {Interval = 11, Amount = 900},
+            new IntervalAmount {Interval = 12, Amount = 900},
+        };
+
+    // Goals based on current discretionary expenses
+    public List<IntervalAmount> GoalCurrent = new List<IntervalAmount>
+{
+        new IntervalAmount {Interval = 1, Amount = 75},
+        new IntervalAmount {Interval = 2, Amount = 150},
+        new IntervalAmount {Interval = 3, Amount = 225},
+        new IntervalAmount {Interval = 4, Amount = 300},
+        new IntervalAmount {Interval = 5, Amount = 375},
+        new IntervalAmount {Interval = 6, Amount = 450},
+        new IntervalAmount {Interval = 7, Amount = 525},
+        new IntervalAmount {Interval = 8, Amount = 600},
+        new IntervalAmount {Interval = 9, Amount = 675},
+        new IntervalAmount {Interval = 10, Amount = 750},
+        new IntervalAmount {Interval = 11, Amount = 825},
+        new IntervalAmount {Interval = 12, Amount = 900},
+    };
+
+    // Affected by reduction in discretionary expenses
+    public List<IntervalAmount> GoalPotential = new List<IntervalAmount>
+{
+        new IntervalAmount {Interval = 1, Amount = 207.92M},
+        new IntervalAmount {Interval = 2, Amount = 415.83M},
+        new IntervalAmount {Interval = 3, Amount = 623.75M},
+        new IntervalAmount {Interval = 4, Amount = 831.66M},
+        new IntervalAmount {Interval = 5, Amount = 1039.58M}
+    };
+
+
+
+    public List<ChartData> MedalDetails = new List<ChartData>
+    {
+
+        //new ChartData { X= "China", Y= 51.4 }
+    };
+
+}

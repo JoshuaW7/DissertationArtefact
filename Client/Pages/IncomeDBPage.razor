@@ -16,30 +16,39 @@ else
         <thead>
             <tr>
                 <th>
-                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">Add New</button>
+                    @*Add new income button*@
+                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">
+                        <span class="oi oi-plus" aria-hidden="true"></span>
+                    </button>
                 </th>
                 <th>Name</th>
                 <th>Payment Date</th>
                 <th>Frequency</th>
                 <th>Sender</th>
-                <th>Amount</th>
-
+                <th style="text-align:right;">Amount</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var income in incomes)
             {
-            <tr>
-                <td>
-                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.Id}"))">Edit</button>
-                    <button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">Delete</button>
-                </td>
-                <td>@income.LabelName</td>
-                <td>@income.PaymentDate</td>
-                <td>@income.Frequency</td>
-                <td>@income.SenderName</td>
-                <td style="text-align:right;">@income.Amount.ToString(currencyPref)</td>
-            </tr>
+                <tr>
+                    <td>
+                        @*Edit income button*@
+                        <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.Id}"))">
+                            <span class="oi oi-pencil" aria-hidden="true"></span>
+                        </button>
+                        @*<button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                <path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+                            </svg>
+                            </button>*@
+                    </td>
+                    <td>@income.LabelName</td>
+                    <td>@income.PaymentDate</td>
+                    <td>@income.Frequency</td>
+                    <td>@income.SenderName</td>
+                    <td style="text-align:right;">@income.Amount.ToString(currencyPref)</td>
+                </tr>
             }
 
         </tbody>
@@ -49,20 +58,46 @@ else
             </tr>
         </tfoot>
     </table>
+
+    <input type="range" min="12" max="60" step="1" value="@months"
+         @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
+    <table>
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Total Monthly Income</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in projectedIncome)
+            {
+                <tr>
+                    <td>@i.Key.Item1</td>
+                    <td>@i.Key.Item2 </td>
+                    <td>@i.Value</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
 }
 
 @code {
 
-
     private List<Income> incomes;
     private User user;
     private string currencyPref = "£0.00";
+
+    private Dictionary<(int, int), decimal> projectedIncome;
+    private int months = 12;
 
     protected override async Task OnInitializedAsync()
     {
         user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
 
         incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+        projectedIncome = new PlutoFunctions().IncomeProjection(months, incomes);
     }
 
     protected async Task Delete(Income income)
@@ -71,5 +106,10 @@ else
         var result = await Http.DeleteAsync($"api/income/{income.Id}");
 
         incomes.Remove(income);
+    }
+
+    protected async Task ProjectionChanged()
+    {
+        projectedIncome = new PlutoFunctions().IncomeProjection(months, incomes);
     }
 }
