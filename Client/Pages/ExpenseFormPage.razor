@@ -15,58 +15,58 @@ else
     <h1>Expense Form                         
         <button class="btn btn-danger"
             @onclick="@((async () => await Delete(expense)))">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                <path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
             </svg>
         </button>
     </h1>
 
-    <div>
-        <label for="">Expense Name: </label>
-        <input @bind="@expense.LabelName" />
-    </div>
+    <form>
+        <div class="form-group">
+            <label for="" class="form-label">Expense Name: </label>
+            <input @bind="@expense.LabelName" class="form-control" />
+        </div>
 
-    <div>
-        <label for="">Payment Date:</label>
-        <input @bind="@expense.PaymentDate" @bind:format="yyyy-MM-dd" />
-    </div>
+        <div class="form-group">
+            <label for="" class="form-label">Payment Date:</label>
+            <input @bind="@expense.PaymentDate" @bind:format="yyyy-MM-dd" class="form-control" />
+        </div>
 
-    <div>
-        <label for="">Frequency: </label>
-        <select @bind="expense.Frequency">
-            <option value="@ExpenseFrequencies.Annually">@nameof(ExpenseFrequencies.Annually)</option>
-            <option value="@ExpenseFrequencies.Monthly">@nameof(ExpenseFrequencies.Monthly)</option>
-            <option value="@ExpenseFrequencies.Weekly">@nameof(ExpenseFrequencies.Weekly)</option>
-            <option value="@ExpenseFrequencies.OneTime">@nameof(ExpenseFrequencies.OneTime)</option>
-        </select>
-    </div>
+        <div class="form-group" hidden="">
+            <label for="" class="form-label d-none d-sm-block">Frequency: </label>
+            <select @bind="expense.Frequency" class="form-control">
+                <option value="@ExpenseFrequencies.Annually">@nameof(ExpenseFrequencies.Annually)</option>
+                <option value="@ExpenseFrequencies.Monthly">@nameof(ExpenseFrequencies.Monthly)</option>
+                <option value="@ExpenseFrequencies.Weekly">@nameof(ExpenseFrequencies.Weekly)</option>
+                <option value="@ExpenseFrequencies.OneTime">@nameof(ExpenseFrequencies.OneTime)</option>
+            </select>
+        </div>
 
-    <div>
-        <label for="">Type: </label>
-        <select @bind="expense.Type">
-            <option value="@Types.Discretionary">@nameof(Types.Discretionary)</option>
-            <option value="@Types.Essential">@nameof(Types.Essential)</option>
-        </select>
-    </div>
+        <div class="form-group">
+            <label for="" class="form-label">Type: </label>
+            <select @bind="expense.Type" class="form-control">
+                <option value="@Types.Discretionary">@nameof(Types.Discretionary)</option>
+                <option value="@Types.Essential">@nameof(Types.Essential)</option>
+            </select>
+        </div>
 
-    <div>
-        <label for="">Category: </label>
+        <div class="form-group">
+            <label for="" class="form-label">Category: </label>
+            <select @bind="expense.Category" class="form-control">
+                @foreach (Categories category in (Categories[])Enum.GetValues(typeof(Categories)))
+                {
 
-        <select @bind="expense.Category">
-            @foreach (Categories category in (Categories[])Enum.GetValues(typeof(Categories)))
-            {
+                    <option value="@category">@category</option>
 
-                <option value="@category">@category</option>
+                }
+            </select>
+        </div>
 
-            }
-        </select>
-    </div>
-
-    <div>
-        <label for="">Amount: </label>
-        <input @bind="@expense.Amount" />
-    </div>
-
+        <div class="form-group">
+            <label for="" class="form-label">Amount: </label>
+            <input @bind="@expense.Amount" class="form-control" />
+        </div>
+    </form>
 
 
     <!--Bootstrap button, look into syncfusion-->

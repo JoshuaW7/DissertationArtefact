@@ -14,42 +14,43 @@ else
 
 <h1>Income Form
     <button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-            <path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
         </svg>
     </button>
 </h1>
 
+<form>
+    <div class="form-group">
+        <label for="" class="form-label">Income Name: </label>
+        <input @bind="@income.LabelName" class="form-control" />
+    </div>
 
-<div>
-    <label for="">Income Name: </label>
-    <input @bind="@income.LabelName" />
-</div>
+    <div class="form-group">
+        <label for="" class="form-label">Payment Date:</label>
+        <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" class="form-control" />
+    </div>
 
-<div>
-    <label for="">Payment Date:</label>
-    <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" />
-</div>
+    <div class="form-group">
+        <label for="" class="form-label">Frequency: </label>
+        <select @bind="income.Frequency" class="form-control">
+            <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
+            <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
+            <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
+            <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
+        </select>
+    </div>
 
-<div>
-    <label for="">Frequency: </label>
-    <select @bind="income.Frequency">
-        <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
-        <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
-        <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
-        <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
-    </select>
-</div>
+    <div class="form-group">
+        <label for="" class="form-label">Sender: </label>
+        <input @bind="@income.SenderName" class="form-control"/>
+    </div>
 
-<div>
-    <label for="">Sender: </label>
-    <input @bind="@income.SenderName" />
-</div>
-
-<div>
-    <label for="">Amount: </label>
-    <input @bind="@income.Amount" />
-</div>
+    <div class="form-group">
+        <label for="" class="form-label">Amount: </label>
+        <input @bind="@income.Amount" class="form-control"/>
+    </div>
+</form>
 
  <!--Bootstrap button, look into syncfusion-->
 <button class="btn btn-primary" @onclick="@(async () => await Cancel())">Back</button>

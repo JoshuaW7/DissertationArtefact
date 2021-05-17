@@ -7,7 +7,7 @@ using DissertationArtefact.Shared;
 
 namespace DissertationArtefact.Shared
 {
-    
+
     public partial class PlutoFunctions
     {
 
@@ -258,6 +258,31 @@ namespace DissertationArtefact.Shared
             return incomeExpenseProjection;
         }
 
+        public List<(int, int, decimal, decimal, decimal)> IncomeExpenseProjection(int months, List<Income> incomes, List<Expense> expenses)
+        {
+            // Get projected Income for months into the future
+            PlutoFunctions f = new PlutoFunctions();
+            var ip = f.IncomeProjection(months, incomes);
+            var expEssential = f.ExpenseProjection(months, expenses, new Types[] { Types.Essential });
+            var expDiscretionary = f.ExpenseProjection(months, expenses, new Types[] { Types.Discretionary });
+
+            List<(int, int, decimal, decimal, decimal)> incomeExpenseProjection
+                = new List<(int, int, decimal, decimal, decimal)>();
+
+            foreach (var t in ip)
+            {
+                decimal income = ip[t.Key];
+                decimal essentialExpense = expEssential[t.Key];
+                decimal discretionaryExpense = expDiscretionary[t.Key];
+                //decimal allExpense = essentialExpense + discretionaryExpense;// exp[t.Key];
+                //decimal disposableIncome = income - allExpense;
+                // year, month, incometotal, expensetotal, disposableIncome
+                incomeExpenseProjection.Add((t.Key.Item1, t.Key.Item2, income, essentialExpense, discretionaryExpense));
+            }
+            // tabulated results
+            return incomeExpenseProjection;
+        }
+
         public int NumberOfWeeksInAMonth(DateTime today)
         {
             //extract the month
@@ -270,9 +295,37 @@ namespace DissertationArtefact.Shared
             return weeksInMonth;
         }
 
+        public List<Contribution> goalContributions(decimal goalAmount,
+            List<(int, int, decimal, decimal, decimal)> incExptDict,
+            decimal allocationPercentage = 100)
+        {
+            List<Contribution> contributions = new List<Contribution>();
+            decimal savedAmount = 0; // goal.StartAmount
+                                     //First series
+                                     //var collection = function goalAmount, m.ed? series=>{ m} dispamountsOverTime(m) for expense types Disc+Estent
+            foreach (var incExp in incExptDict)
+            {
+                //Item5 is the calculated Disposable Income... Ideally we'd probably refactor the Tuple to use a projection from a new object
+                decimal contribAmountPerMonth = incExp.Item5 * (allocationPercentage / 100);
+                if (savedAmount + contribAmountPerMonth < goalAmount)
+                {
+                    //Item1 is Year - Item2 is Month
+                    contributions.Add(new Contribution { MonthYear = new DateTime(incExp.Item1, incExp.Item2, 1), Amount = contribAmountPerMonth });
+                }
+                else if (savedAmount + contribAmountPerMonth > goalAmount)
+                {
+                    contribAmountPerMonth = goalAmount - savedAmount;
+                    contributions.Add(new Contribution { MonthYear = new DateTime(incExp.Item1, incExp.Item2, 1), Amount = contribAmountPerMonth });
+                }
+                savedAmount += contribAmountPerMonth;
+                if (savedAmount >= goalAmount)
+                {
+                    break;
+                }
+            }
+
+            return contributions;
+        }
     }
 
 }
-// Should it be calculated on the reduction of discretionary expenses, not allocation of disposable income
-// Why not both? 2 sliders... 1: Allocation 2: Spending Reduction
-// 

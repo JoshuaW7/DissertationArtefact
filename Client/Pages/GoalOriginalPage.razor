@@ -1,5 +1,5 @@
-﻿@page "/goal/"
-@page "/goal/{id}"
+﻿@page "/goalorig/"
+@page "/goalorig/{id}"
 @inject HttpClient Http
 @inject NavigationManager NavManager
 @using Microsoft.JSInterop;
@@ -140,39 +140,37 @@
     </ChartSeriesCollection>
 </SfChart>
 
-<div>@discReduction</div>
+
 
 <input class="form-range" type="range" min="1" max="100" step="1" value="@discReduction"
        @oninput="@((args) => discReduction = Convert.ToInt32(args.Value))" @onchange="AllocationChanged" />
 
 
 
-<div>hello:) <b>@months</b></div>
+<div>Months: <b>@months</b></div>
 
-@if (!(incomeExpenses is null))
+@if (!(intervals is null))
 {
+    <input type="range" min="1" max="100" step="1" value="@goal.Allocation"
+           @oninput="@((args) => goal.Allocation = Convert.ToDecimal(args.Value))" @onchange="AllocationChanged" />
+    <div>Allocation: <b>@goal.Allocation%</b></div>
+
     <table class="table" style="">
         <thead>
             <tr>
-                <th><b>Year </b></th>
-                <th><b>Month</b></th>
-                <th><b>Income</b></th>
-                <th><b>Essential Expenediture</b></th>
-                <th><b>Discretionary Expenediture</b></th>
-                <th><b>Reduced Discretionary Expenediture</b></th>
+                <th><b>Interval </b></th>
+                <th><b>Save Target </b></th>
+                <th><b>Saved  </b></th>
             </tr>
         </thead>
+
         <tbody>
-            @foreach ((int, int, decimal, decimal, decimal) ie in incomeExpenses)
+            @foreach ((int, decimal, decimal) interval in intervals)
             {
-                var discount = ie.Item5 * (Convert.ToDecimal(discReduction) / 100.0M);
                 <tr>
-                    <td>@ie.Item1</td>
-                    <td>@ie.Item2</td>
-                    <td>@ie.Item3</td>
-                    <td>@ie.Item4</td>
-                    <td>@ie.Item5</td>
-                    <td>£@discount</td>
+                    <td>@DateTime.Now.AddMonths(@interval.Item1)</td>
+                    <td>@interval.Item2</td>
+                    <td>@interval.Item3</td>
                 </tr>
             }
         </tbody>
@@ -189,10 +187,8 @@
     private List<Goal> goals;
     private List<Income> incomes;
     private List<Expense> expenses;
-    private List<(int, int, decimal, decimal, decimal)> incomeExpenses;
-
     private Goal goal;
-    private int months = 60;
+    private int months;
     private PlutoFunctions plutoFunctions;
     private List<(int, decimal, decimal)> intervals;
 
@@ -202,7 +198,10 @@
     private List<Contribution> goalPotentialAccrual;
     private List<Contribution> goalTarget;
 
-    private int discReduction = 50;
+    private List<(int, int, decimal, decimal, decimal)> incDispEssDisc;
+    private List<(int, int, decimal, decimal, decimal)> incDispEss;
+
+    private int discReduction = 0;
 
     //private Theme Theme { get; set; }
 
@@ -239,11 +238,65 @@
 
     private void UpdateCollections()
     {
+        incDispEssDisc = plutoFunctions.IncomeExpenseProjection(60, incomes, expenses, new Types[] { Types.Essential, Types.Discretionary });
+        incDispEss = plutoFunctions.IncomeExpenseProjection(60, incomes, expenses, new Types[] { Types.Essential });
+        goalCurrent = plutoFunctions.goalContributions(goal.TargetAmount, incDispEssDisc, 100);
+        goalPotential = plutoFunctions.goalContributions(goal.TargetAmount, incDispEss, 100);
+        decimal accruedAmount = 0;
         goalCurrentAccrual = new List<Contribution>();
         goalPotentialAccrual = new List<Contribution>();
         goalTarget = new List<Contribution>();
 
-        incomeExpenses = plutoFunctions.IncomeExpenseProjection(months, incomes, expenses);
+        foreach (var contrib in goalCurrent)
+        {
+            accruedAmount += contrib.Amount;
+            goalCurrentAccrual.Add(new Contribution { MonthYear = contrib.MonthYear, Amount = accruedAmount });
+        }
+
+        accruedAmount = 0;
+        foreach (var contrib in goalPotential)
+        {
+            accruedAmount += contrib.Amount;
+            goalPotentialAccrual.Add(new Contribution { MonthYear = contrib.MonthYear, Amount = accruedAmount });
+        }
+
+        foreach (var contrib in goalCurrent)
+        {
+            goalTarget.Add(new Contribution { MonthYear = contrib.MonthYear, Amount = goal.TargetAmount });
+        }
+    }
+
+    private void UpdateCollections2()
+    {
+        incDispEssDisc = plutoFunctions.IncomeExpenseProjection(60, incomes, expenses, new Types[] { Types.Essential, Types.Discretionary });
+        incDispEss = plutoFunctions.IncomeExpenseProjection(60, incomes, expenses, new Types[] { Types.Essential });
+
+        goalCurrent = plutoFunctions.goalContributions(goal.TargetAmount, incDispEssDisc, 100);
+        goalPotential = plutoFunctions.goalContributions(goal.TargetAmount, incDispEss, 100);
+
+        decimal accruedAmount = 0;
+
+        goalCurrentAccrual = new List<Contribution>();
+        goalPotentialAccrual = new List<Contribution>();
+        goalTarget = new List<Contribution>();
+
+        foreach (var contrib in goalCurrent)
+        {
+            accruedAmount += contrib.Amount;
+            goalCurrentAccrual.Add(new Contribution { MonthYear = contrib.MonthYear, Amount = accruedAmount });
+        }
+
+        accruedAmount = 0;
+        foreach (var contrib in goalPotential)
+        {
+            accruedAmount += contrib.Amount;
+            goalPotentialAccrual.Add(new Contribution { MonthYear = contrib.MonthYear, Amount = accruedAmount });
+        }
+
+        foreach (var contrib in goalCurrent)
+        {
+            goalTarget.Add(new Contribution { MonthYear = contrib.MonthYear, Amount = goal.TargetAmount });
+        }
     }
 
     private void AllocationChanged()
@@ -255,7 +308,7 @@
 
     private void DiscReductionChanged()
     {
-        UpdateCollections();
+        UpdateCollections2();
     }
 
 
