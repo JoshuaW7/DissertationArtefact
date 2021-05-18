@@ -8,10 +8,19 @@
 @inject IJSRuntime JS
 
 
-<h1>Goal</h1>
+
 
 @if (!(goal is null))
 {
+    <h1>
+        @goal.GoalName
+        <button class="btn btn-danger" @onclick="@((async () => await Delete(goal)))">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+            </svg>
+        </button>
+    </h1>
+
     <form class="row row-cols-lg-auto g-3 align-items-center">
         <div class="col-md-3">
             <label class="visually-hidden" for="inlineFormSelectPref">Goal Name: </label>
@@ -84,13 +93,41 @@
         }
     }
 </style>
+@*<div class="control-section">
+        <SfChart ID="container" Title="Fruits Production Statistics">
+            <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
+            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="yyyy" IntervalType="IntervalType.Months" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
+                <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+            </ChartPrimaryXAxis>
+            <ChartPrimaryYAxis LabelFormat="{value}%" RangePadding="ChartRangePadding.None" Minimum="0" Maximum="40" Interval="10">
+                <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+            </ChartPrimaryYAxis>
+            <ChartTooltipSettings Enable="true" Shared="true"></ChartTooltipSettings>
+            <ChartCrosshairSettings Enable="true" LineType="LineType.Vertical">
+            </ChartCrosshairSettings>
+            <ChartSeriesCollection>
+                <ChartSeries DataSource="@ChartData" Name="Banana" XName="Period" Width="2"
+                             Opacity="1" YName="Banana_ProductionRate" Type="ChartSeriesType.Line" DashArray="5">
+                    <ChartMarker Visible="true" Width="10" Height="10">
+                    </ChartMarker>
+                </ChartSeries>
+                <ChartSeries DataSource="@ChartData" Name="Apple" XName="Period" Width="2"
+                             Opacity="1" YName="Apple_ProductionRate" Type="ChartSeriesType.Line" DashArray="10">
+                    <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Diamond">
+                    </ChartMarker>
+                </ChartSeries>
+            </ChartSeriesCollection>
+        </SfChart>
+    </div>*@
+
 <div class="control-section">
-    <SfChart ID="container" Title="Fruits Production Statistics">
+    <SfChart ID="container" Title="Goal Savings Projection">
         <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
-        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="yyyy" IntervalType="IntervalType.Years" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="MMM yyyy" IntervalType="IntervalType.Months" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
             <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
         </ChartPrimaryXAxis>
-        <ChartPrimaryYAxis LabelFormat="{value}%" RangePadding="ChartRangePadding.None" Minimum="0" Maximum="40" Interval="10">
+        <ChartPrimaryYAxis RangePadding="ChartRangePadding.None" >
             <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
             <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
         </ChartPrimaryYAxis>
@@ -98,13 +135,13 @@
         <ChartCrosshairSettings Enable="true" LineType="LineType.Vertical">
         </ChartCrosshairSettings>
         <ChartSeriesCollection>
-            <ChartSeries DataSource="@ChartData" Name="Banana" XName="Period" Width="2"
-                         Opacity="1" YName="Banana_ProductionRate" Type="ChartSeriesType.Line" DashArray="5">
-                <ChartMarker Visible="true" Width="10" Height="10">
+            <ChartSeries DataSource="@goalCurrent" Name="Current" XName="MonthYear" Width="2"
+                         Opacity="1" YName="Amount" Type="ChartSeriesType.Line" DashArray="5">
+                <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Pentagon">
                 </ChartMarker>
             </ChartSeries>
-            <ChartSeries DataSource="@ChartData" Name="Apple" XName="Period" Width="2"
-                         Opacity="1" YName="Apple_ProductionRate" Type="ChartSeriesType.Line" DashArray="10">
+            <ChartSeries DataSource="@goalPotential" Name="Potential" XName="MonthYear" Width="2"
+                         Opacity="1" YName="Amount" Type="ChartSeriesType.Line" DashArray="5" Fill="Red">
                 <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Diamond">
                 </ChartMarker>
             </ChartSeries>
@@ -113,41 +150,37 @@
 </div>
 
 
+<div>Expense Reduction: <b>@discReduction%</b></div>
 
-
-
-@*<SfChart Title="">
-        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
-
-        <ChartSeriesCollection>
-            <ChartSeries DataSource="@GoalCurrent" Opacity="0.6" Name="Current" XName="Interval" YName="Amount" Type="ChartSeriesType.SplineArea" Fill="Red">
-            </ChartSeries>
-            <ChartSeries DataSource="@GoalPotential" Opacity="0.6" Name="Potential" XName="Interval" YName="Amount" Type="ChartSeriesType.SplineArea" Fill="Blue">
-            </ChartSeries>
-            <ChartSeries DataSource="@GoalAmount" Name="Goal" XName="Interval" Width="2"
-                         Opacity="0.7" YName="Amount" Type="ChartSeriesType.Line" Fill="Black">
-            </ChartSeries>
-        </ChartSeriesCollection>
-    </SfChart>*@
-
-
-<SfChart Title="">
-    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
-    <ChartSeriesCollection>
-        <ChartSeries DataSource="@goalTarget" Opacity="1" Name="Target Amount" XName="MonthYear" YName="Amount" Type="ChartSeriesType.Line" Fill="Black" Width="2"></ChartSeries>
-        <ChartSeries DataSource="@goalCurrentAccrual" Opacity="0.7" Name="Discretionary Expenses" XName="MonthYear" YName="Amount" Type="ChartSeriesType.SplineArea" Fill="Blue"></ChartSeries>
-        <ChartSeries DataSource="@goalPotentialAccrual" Opacity="0.7" Name="Essential Expenses" XName="MonthYear" YName="Amount" Type="ChartSeriesType.SplineArea" Fill="Green"></ChartSeries>
-    </ChartSeriesCollection>
-</SfChart>
-
-<div>@discReduction</div>
-
-<input class="form-range" type="range" min="1" max="100" step="1" value="@discReduction"
+<input class="form-range" type="range" min="0" max="100" step="1" value="@discReduction"
        @oninput="@((args) => discReduction = Convert.ToInt32(args.Value))" @onchange="AllocationChanged" />
 
+<div><b>@months</b> Month Projection</div>
 
 
-<div>hello:) <b>@months</b></div>
+@if (!(goalCurrent is null))
+{
+    <table class="table" style="">
+        <thead>
+            <tr>
+                <th><b>Month Year </b></th>
+                <th><b>Amount</b></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in goalPotential)
+            {
+                <tr>
+                    <td>@c.MonthYear</td>
+                    <td>@c.Amount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+}
+
 
 @if (!(incomeExpenses is null))
 {
@@ -157,9 +190,10 @@
                 <th><b>Year </b></th>
                 <th><b>Month</b></th>
                 <th><b>Income</b></th>
-                <th><b>Essential Expenediture</b></th>
-                <th><b>Discretionary Expenediture</b></th>
-                <th><b>Reduced Discretionary Expenediture</b></th>
+                <th><b>Essential Expenditure</b></th>
+                <th><b>Discretionary Expenditure</b></th>
+                <th><b>Reduced Discretionary Expenditure</b></th>
+
             </tr>
         </thead>
         <tbody>
@@ -173,11 +207,15 @@
                     <td>@ie.Item4</td>
                     <td>@ie.Item5</td>
                     <td>£@discount</td>
+
                 </tr>
             }
         </tbody>
     </table>
+
+
 }
+
 
 
 @code
@@ -192,7 +230,7 @@
     private List<(int, int, decimal, decimal, decimal)> incomeExpenses;
 
     private Goal goal;
-    private int months = 60;
+    private int months = 1200;
     private PlutoFunctions plutoFunctions;
     private List<(int, decimal, decimal)> intervals;
 
@@ -239,11 +277,9 @@
 
     private void UpdateCollections()
     {
-        goalCurrentAccrual = new List<Contribution>();
-        goalPotentialAccrual = new List<Contribution>();
-        goalTarget = new List<Contribution>();
-
         incomeExpenses = plutoFunctions.IncomeExpenseProjection(months, incomes, expenses);
+        goalPotential = plutoFunctions.goalContributions(goal, incomeExpenses, true, discReduction);
+        goalCurrent = plutoFunctions.goalContributions(goal, incomeExpenses);
     }
 
     private void AllocationChanged()
@@ -281,7 +317,7 @@
     }
 
     public List<LineChartData> ChartData = new List<LineChartData>
-    {
+{
         new LineChartData { Period = new DateTime(2005, 01, 01), Banana_ProductionRate = 12, Apple_ProductionRate = 9.5 },
         new LineChartData { Period = new DateTime(2006, 01, 01), Banana_ProductionRate = 10.6, Apple_ProductionRate = 19.9 },
         new LineChartData { Period = new DateTime(2007, 01, 01), Banana_ProductionRate = 15.6, Apple_ProductionRate = 25.2 },
@@ -296,13 +332,21 @@
     {
         goal.UserId = user.Id;
         var result = await Http.PostAsJsonAsync("api/goal", goal, null);
-
-        //NavManager.NavigateTo("goals");
     }
 
     protected async Task Cancel()
     {
         NavManager.NavigateTo("goals");
+    }
+
+    protected async Task Delete(Goal goal)
+    {
+        Console.WriteLine($"Deleting id:{goal.Id}");
+        var result = await Http.DeleteAsync($"api/goal/{goal.Id}");
+
+        NavManager.NavigateTo("goals");
+
+        goals.Remove(goal);
     }
 
 

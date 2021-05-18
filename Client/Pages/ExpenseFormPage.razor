@@ -32,12 +32,13 @@ else
             <input @bind="@expense.PaymentDate" @bind:format="yyyy-MM-dd" class="form-control" />
         </div>
 
-        <div class="form-group" hidden="">
-            <label for="" class="form-label d-none d-sm-block">Frequency: </label>
+        <div class="form-group">
+            <label for="" class="form-label">Frequency: </label>
             <select @bind="expense.Frequency" class="form-control">
                 <option value="@ExpenseFrequencies.Annually">@nameof(ExpenseFrequencies.Annually)</option>
                 <option value="@ExpenseFrequencies.Monthly">@nameof(ExpenseFrequencies.Monthly)</option>
                 <option value="@ExpenseFrequencies.Weekly">@nameof(ExpenseFrequencies.Weekly)</option>
+                <option value="@ExpenseFrequencies.Daily">@nameof(ExpenseFrequencies.Daily)</option>
                 <option value="@ExpenseFrequencies.OneTime">@nameof(ExpenseFrequencies.OneTime)</option>
             </select>
         </div>

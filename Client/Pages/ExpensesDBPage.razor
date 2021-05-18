@@ -22,9 +22,9 @@ else
                 </th>
                 <th>Name</th>
                 <th>Payment Date</th>
-                <th>Frequency</th>
+                <th class="d-none d-sm-block">Frequency</th>
                 <th>Category</th>
-                <th>Type</th>
+                <th class="d-none d-sm-block">Type</th>
                 <th style="text-align:right;">Amount</th>
 
             </tr>
@@ -41,9 +41,9 @@ else
                     </td>
                     <td>@expense.LabelName</td>
                     <td>@expense.PaymentDate</td>
-                    <td>@expense.Frequency</td>
+                    <td class="d-none d-sm-block">@expense.Frequency</td>
                     <td>@expense.Category</td>
-                    <td>@expense.Type</td>
+                    <td class="d-none d-sm-block">@expense.Type</td>
                     <td style="text-align:right;">@expense.Amount.ToString(currencyPref)</td>
                 </tr>
             }
@@ -59,7 +59,7 @@ else
         </tfoot>
     </table>
 
-    <input type="range" min="12" max="60" step="1" value="@months"
+    <input type="range" min="12" max="1200" step="1" value="@months"
            @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
 
     <table class="table">

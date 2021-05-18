@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager NavManager
 
-
+@*<PlutoButton buttonLabel="Hi there :)" goal="@goal"></PlutoButton>*@
 
 @if (goals == null)
 {
@@ -19,7 +19,7 @@ else
     
     foreach (var goal in goals)
     {
-        
+        @*<PlutoButton buttonLabel="@goal.GoalName"></PlutoButton>*@
         <NavLink class="nav-link" href="@($"goal/{goal.Id}")">
             <span aria-hidden="true"></span>
             <button class="btn btn-info btn-lg">

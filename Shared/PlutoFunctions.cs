@@ -295,6 +295,14 @@ namespace DissertationArtefact.Shared
             return weeksInMonth;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="goalAmount"></param>
+        /// <param name="incExptDict"></param>
+        /// <param name="allocationPercentage"></param>
+        /// <returns></returns>
+
         public List<Contribution> goalContributions(decimal goalAmount,
             List<(int, int, decimal, decimal, decimal)> incExptDict,
             decimal allocationPercentage = 100)
@@ -319,6 +327,54 @@ namespace DissertationArtefact.Shared
                 }
                 savedAmount += contribAmountPerMonth;
                 if (savedAmount >= goalAmount)
+                {
+                    break;
+                }
+            }
+
+            return contributions;
+        }
+
+        public List<Contribution> goalContributions(
+            Goal goal,
+            List<(int, int, decimal, decimal, decimal)> incExptDict,
+            bool accrue = true,
+            decimal reductionPercentage = 100)
+        {
+            List<Contribution> contributions = new List<Contribution>();
+            decimal savedAmount = goal.StartAmount;
+                                     //First series
+                                     //var collection = function goalAmount, m.ed? series=>{ m} dispamountsOverTime(m) for expense types Disc+Estent
+            decimal contribAmountPerMonth = 0;
+
+            foreach (var incExp in incExptDict)
+            {
+                //Item5 is the calculated Disposable Income for discretionary expenses
+
+                // contribAmountPerMonth = incExp.Item5 * (reductionPercentage / 100);
+
+                //DI = Income - (EE+DE*R%)
+                decimal di = 0;
+                decimal income = incExp.Item3;
+                decimal ee = incExp.Item4;
+                decimal de = incExp.Item5;
+
+                di = income - (ee + (de * (reductionPercentage / 100)));
+
+                contribAmountPerMonth = di; /*incExp.Item3-incExp.Item4+(incExp.Item5*(reductionPercentage / 100));*/
+
+                if (savedAmount + contribAmountPerMonth < goal.TargetAmount)
+                {
+                    //Item1 is Year - Item2 is Month
+                    contributions.Add(new Contribution { MonthYear = new DateTime(incExp.Item1, incExp.Item2, 1), Amount = accrue ? savedAmount+contribAmountPerMonth : contribAmountPerMonth });
+                }
+                else if (savedAmount + contribAmountPerMonth > goal.TargetAmount)
+                {
+                    contribAmountPerMonth += goal.TargetAmount - savedAmount;
+                    contributions.Add(new Contribution { MonthYear = new DateTime(incExp.Item1, incExp.Item2, 1), Amount = accrue ? savedAmount+contribAmountPerMonth : contribAmountPerMonth });
+                }
+                savedAmount += contribAmountPerMonth;
+                if (savedAmount >= goal.TargetAmount)
                 {
                     break;
                 }

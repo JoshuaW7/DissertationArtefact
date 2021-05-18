@@ -59,9 +59,9 @@ else
         </tfoot>
     </table>
 
-    <input type="range" min="12" max="60" step="1" value="@months"
+    <input type="range" min="12" max="1200" step="1" value="@months"
          @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>Year</th>

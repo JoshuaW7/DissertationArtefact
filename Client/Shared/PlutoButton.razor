@@ -1,0 +1,19 @@
+﻿@using DissertationArtefact.Shared;
+
+<button class="btn btn-info btn-lg">@buttonLabel - @goalName</button>
+
+@code {
+
+    [Parameter]
+    public string buttonLabel { get; set; }
+
+    [Parameter]
+    public Goal goal { get; set; }
+    private string goalName { get; set; } = "nothing here yet ;)";
+
+    protected override async Task OnInitializedAsync()
+    {
+        goalName = goal == null ? "empty :(": goal.GoalName;
+
+    }
+}
