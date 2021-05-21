@@ -382,6 +382,33 @@ namespace DissertationArtefact.Shared
 
             return contributions;
         }
-    }
 
+        public decimal getLimit(Dictionary<(int Year, int Month), decimal> series, decimal m = 1)
+        {
+            decimal max = series.Max(i => i.Value);
+
+            if (max < 5 * m) return 5 * m;
+            if (max < 10 * m) return 10 * m;
+            if (max < 25 * m) return 25 * m;
+            if (max < 50 * m) return 50 * m;
+            if (max < 75 * m) return 75 * m;
+            if (max < 100 * m) return 100 * m;
+
+            return getLimit(series, m * 10);
+        }
+
+        public decimal getLimit(List<Contribution> series, decimal m = 1)
+        {
+            decimal max = series.Max(i => i.Amount);
+
+            if (max < 5 * m) return 5 * m;
+            if (max < 10 * m) return 10 * m;
+            if (max < 25 * m) return 25 * m;
+            if (max < 50 * m) return 50 * m;
+            if (max < 75 * m) return 75 * m;
+            if (max < 100 * m) return 100 * m;
+
+            return getLimit(series, m * 10);
+        }
+    }
 }

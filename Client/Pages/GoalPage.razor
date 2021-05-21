@@ -21,7 +21,7 @@
         </button>
     </h1>
 
-    <form class="row row-cols-lg-auto g-3 align-items-center">
+    <div>
         <div class="col-md-3">
             <label class="visually-hidden" for="inlineFormSelectPref">Goal Name: </label>
             <input type="text" class="form-control" @bind="@goal.GoalName" />
@@ -43,10 +43,19 @@
                 }
             </select>
         </div>
-        <div class="col-md-1">
-            <button class="btn btn-success btn-lg" @onclick="@(async () => await Save())">Save</button>
-        </div>
-    </form>
+    </div>
+
+
+
+
+    @*@oninput= "@((args) => goal.TargetAmount = Convert.ToInt32(String.IsNullOrEmpty((String)args.Value)? 0: Convert.ToInt32(args.Value)))" @onchange = "AllocationChanged"*@
+
+<form class="row row-cols-lg-auto g-3 align-items-center">
+</form>
+
+<div class="col-md-1">
+    <button class="btn btn-success btn-sm" @onclick="@(async () => await Save2021())">Save</button>
+</div>
 }
 
 
@@ -64,7 +73,12 @@
         animation: dash 1s linear infinite;
     }
 
-    #container_Series_0_Point_3_Symbol {
+    @goalCurrentAnimation {
+        -webkit-animation: opac 1s ease-out infinite;
+        animation: opac 1s ease-out infinite;
+    }
+
+    @goalPotentialAnimation {
         -webkit-animation: opac 1s ease-out infinite;
         animation: opac 1s ease-out infinite;
     }
@@ -127,7 +141,7 @@
         <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="MMM yyyy" IntervalType="IntervalType.Months" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
             <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
         </ChartPrimaryXAxis>
-        <ChartPrimaryYAxis RangePadding="ChartRangePadding.None" >
+        <ChartPrimaryYAxis RangePadding="ChartRangePadding.None" Minimum="0" Maximum="@limitUpper">
             <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
             <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
         </ChartPrimaryYAxis>
@@ -136,8 +150,8 @@
         </ChartCrosshairSettings>
         <ChartSeriesCollection>
             <ChartSeries DataSource="@goalCurrent" Name="Current" XName="MonthYear" Width="2"
-                         Opacity="1" YName="Amount" Type="ChartSeriesType.Line" DashArray="5">
-                <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Pentagon">
+                         Opacity="1" YName="Amount" Type="ChartSeriesType.Line" DashArray="5" Fill="Blue">
+                <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Diamond">
                 </ChartMarker>
             </ChartSeries>
             <ChartSeries DataSource="@goalPotential" Name="Potential" XName="MonthYear" Width="2"
@@ -145,18 +159,18 @@
                 <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Diamond">
                 </ChartMarker>
             </ChartSeries>
+            <ChartSeries DataSource="@(new List<Contribution> { new Contribution { MonthYear = new DateTime(2021, 5, 1), Amount = 20000 }, new Contribution { MonthYear = new DateTime(2025, 5, 1), Amount = 20000 } })" Name="Goal" XName="MonthYear" Width="2"
+                         Opacity="0.7" YName="Amount" Type="ChartSeriesType.Line" Fill="Black">
+            </ChartSeries>
         </ChartSeriesCollection>
     </SfChart>
 </div>
 
-
 <div>Expense Reduction: <b>@discReduction%</b></div>
-
-<input class="form-range" type="range" min="0" max="100" step="1" value="@discReduction"
+<input style="width:50%; height:50px;" class="form-range" type="range" min="0" max="100" step="1" value="@discReduction"
        @oninput="@((args) => discReduction = Convert.ToInt32(args.Value))" @onchange="AllocationChanged" />
 
 <div><b>@months</b> Month Projection</div>
-
 
 @if (!(goalCurrent is null))
 {
@@ -177,10 +191,7 @@
             }
         </tbody>
     </table>
-
-
 }
-
 
 @if (!(incomeExpenses is null))
 {
@@ -212,8 +223,6 @@
             }
         </tbody>
     </table>
-
-
 }
 
 
@@ -230,7 +239,7 @@
     private List<(int, int, decimal, decimal, decimal)> incomeExpenses;
 
     private Goal goal;
-    private int months = 1200;
+    private int months = 520;
     private PlutoFunctions plutoFunctions;
     private List<(int, decimal, decimal)> intervals;
 
@@ -241,8 +250,12 @@
     private List<Contribution> goalTarget;
 
     private int discReduction = 50;
+    private decimal limitUpper = 0;
 
-    //private Theme Theme { get; set; }
+    private int goalPotentialLength = 0;
+    private string goalPotentialAnimation;
+    private int goalCurrentLength = 0;
+    private string goalCurrentAnimation;
 
     protected override async Task OnInitializedAsync()
     {
@@ -265,26 +278,28 @@
             goal = await Http.GetFromJsonAsync<Goal>($"api/goal/{id}");
         }
 
-
-
         plutoFunctions = new PlutoFunctions();
-        //months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
 
+        //months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
         //intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
+
         UpdateCollections();
     }
-
 
     private void UpdateCollections()
     {
         incomeExpenses = plutoFunctions.IncomeExpenseProjection(months, incomes, expenses);
-        goalPotential = plutoFunctions.goalContributions(goal, incomeExpenses, true, discReduction);
+        goalPotential = plutoFunctions.goalContributions(goal, incomeExpenses, true, 100 - discReduction);
         goalCurrent = plutoFunctions.goalContributions(goal, incomeExpenses);
+
+        goalCurrentAnimation = $"#container_Series_0_Point_{goalCurrent.Count - 1}_Symbol";
+        goalPotentialAnimation = $"#container_Series_1_Point_{goalPotential.Count - 1}_Symbol";
+
+        limitUpper = plutoFunctions.getLimit(goalPotential);
     }
 
     private void AllocationChanged()
     {
-
 
         UpdateCollections();
     }
@@ -303,32 +318,33 @@
     //    public decimal Z { get; set; }
     //    public decimal A { get; set; }
     //}
+
     public class IntervalAmount
     {
         public int Interval { get; set; }
         public decimal Amount { get; set; }
     }
 
-    public class LineChartData
-    {
-        public DateTime Period { get; set; }
-        public double Banana_ProductionRate { get; set; }
-        public double Apple_ProductionRate { get; set; }
-    }
+    //public class LineChartData
+    //{
+    //    public DateTime Period { get; set; }
+    //    public double Banana_ProductionRate { get; set; }
+    //    public double Apple_ProductionRate { get; set; }
+    //}
 
-    public List<LineChartData> ChartData = new List<LineChartData>
-{
-        new LineChartData { Period = new DateTime(2005, 01, 01), Banana_ProductionRate = 12, Apple_ProductionRate = 9.5 },
-        new LineChartData { Period = new DateTime(2006, 01, 01), Banana_ProductionRate = 10.6, Apple_ProductionRate = 19.9 },
-        new LineChartData { Period = new DateTime(2007, 01, 01), Banana_ProductionRate = 15.6, Apple_ProductionRate = 25.2 },
-        new LineChartData { Period = new DateTime(2008, 01, 01), Banana_ProductionRate = 38.6, Apple_ProductionRate = 36 },
-        new LineChartData { Period = new DateTime(2009, 01, 01), Banana_ProductionRate = 27.4, Apple_ProductionRate = 16.6 },
-        new LineChartData { Period = new DateTime(2010, 01, 01), Banana_ProductionRate = 23.5, Apple_ProductionRate = 14.2 },
-        new LineChartData { Period = new DateTime(2011, 01, 01), Banana_ProductionRate = 16.6, Apple_ProductionRate = 10.3 }
-    };
+    //    public List<LineChartData> ChartData = new List<LineChartData>
+    //{
+    //        new LineChartData { Period = new DateTime(2005, 01, 01), Banana_ProductionRate = 12, Apple_ProductionRate = 9.5 },
+    //        new LineChartData { Period = new DateTime(2006, 01, 01), Banana_ProductionRate = 10.6, Apple_ProductionRate = 19.9 },
+    //        new LineChartData { Period = new DateTime(2007, 01, 01), Banana_ProductionRate = 15.6, Apple_ProductionRate = 25.2 },
+    //        new LineChartData { Period = new DateTime(2008, 01, 01), Banana_ProductionRate = 38.6, Apple_ProductionRate = 36 },
+    //        new LineChartData { Period = new DateTime(2009, 01, 01), Banana_ProductionRate = 27.4, Apple_ProductionRate = 16.6 },
+    //        new LineChartData { Period = new DateTime(2010, 01, 01), Banana_ProductionRate = 23.5, Apple_ProductionRate = 14.2 },
+    //        new LineChartData { Period = new DateTime(2011, 01, 01), Banana_ProductionRate = 16.6, Apple_ProductionRate = 10.3 }
+    //    };
 
 
-    protected async Task Save()
+    protected async Task Save2021()
     {
         goal.UserId = user.Id;
         var result = await Http.PostAsJsonAsync("api/goal", goal, null);
@@ -345,14 +361,5 @@
         var result = await Http.DeleteAsync($"api/goal/{goal.Id}");
 
         NavManager.NavigateTo("goals");
-
-        goals.Remove(goal);
     }
-
-
-    //New
-    public List<IntervalAmount> goalCurrentNew = new List<IntervalAmount>
-    {
-
-    };
 }

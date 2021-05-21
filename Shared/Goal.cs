@@ -2,6 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace DissertationArtefact.Shared
 {
@@ -20,6 +21,8 @@ namespace DissertationArtefact.Shared
 
         // How much disposable income to be set aside for goal (0-100%)
         public decimal Allocation { get; set; }
+
+        [Required]
         public string GoalName { get; set; }
         public GoalCategories GoalCategory { get; set; }
         public decimal TargetAmount { get; set; }

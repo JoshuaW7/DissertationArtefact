@@ -1,8 +1,9 @@
 ﻿@page "/goals"
 @using DissertationArtefact.Shared
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Charts
 @inject HttpClient Http
 @inject NavigationManager NavManager
-
 @*<PlutoButton buttonLabel="Hi there :)" goal="@goal"></PlutoButton>*@
 
 @if (goals == null)
@@ -11,27 +12,52 @@
 }
 else
 {
-    <h1>Goals 
+    <h1>
+        Goals
         <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/goal"))">
             <span class="oi oi-plus" aria-hidden="true"></span>
         </button>
     </h1>
-    
+
     foreach (var goal in goals)
     {
         @*<PlutoButton buttonLabel="@goal.GoalName"></PlutoButton>*@
         <NavLink class="nav-link" href="@($"goal/{goal.Id}")">
-            <span aria-hidden="true"></span>
-            <button class="btn btn-info btn-lg">
+            <button class="btn btn-primary">
                 <div>@goal.GoalName</div>
                 <div>£@goal.TargetAmount</div>
+                <div>Allocation: <b>@goal.Allocation%</b></div>
             </button>
         </NavLink>
+        <div>
+            <span aria-hidden="true"></span>
+            @*<button class="btn btn-info btn-lg">*@
+            
+            <div>
+                <input style="width:50%; height:50px;" class="form-range" type="range" min="0" max="100" step="1" @bind="@goal.Allocation" />
+            </div>
+
+        </div>
     }
 
+    <button class="btn btn-primary" @onclick="@(async () => await Update())">Update</button>
 
+
+    <div class="col-lg-8 control-section sb-property-border">
+        <div class="control-section">
+            <SfAccumulationChart Title="Goal Allocation Percentage" EnableAnimation="true">
+                <AccumulationChartTooltipSettings Enable="true"></AccumulationChartTooltipSettings>
+                <AccumulationChartLegendSettings Visible="false"></AccumulationChartLegendSettings>
+                <AccumulationChartSeriesCollection>
+                    <AccumulationChartSeries DataSource="@PieChartPoints" XName="Browser" YName="Users" Name="Browser" Radius="@OuterRadius" StartAngle="@StartAngle" EndAngle="@EndAngle"
+                                             InnerRadius="0%" ExplodeIndex="@ExplodeIndex" Explode="true" ExplodeOffset="@ExplodeRadius">
+                        <AccumulationDataLabelSettings Visible="true" Name="Browser" Position="AccumulationLabelPosition.Outside"></AccumulationDataLabelSettings>
+                    </AccumulationChartSeries>
+                </AccumulationChartSeriesCollection>
+            </SfAccumulationChart>
+        </div>
+    </div>
 }
-
 
 @code {
 
@@ -52,22 +78,48 @@ else
         user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
         goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{user.Id}");
 
-        //if (id == new Guid().ToString()) //(string.IsNullOrEmpty(id)) ...not sure what this is for.. might be tired eyes
-        //{
-        //    goal = new Goal
-        //    {
-        //        CreationDate = DateTime.Now,
-        //        UserId = user.Id
-        //    };
-        //}
-        //else
-        //{
-        //    goal = await Http.GetFromJsonAsync<Goal>($"api/goal/{id}");
+        await Update();
+    }
 
-        //    if (goal is null)
-        //    {
-        //        //expense = new Expense();
-        //    }
-        //}
+    public double ExplodeIndex { get; set; } = 1;
+    public string OuterRadius = "70%", ExplodeRadius = "10%";
+    public int StartAngle = 0, EndAngle = 360;
+
+    private List<PieData> PieChartPoints;
+
+    private int angle = 0, radius = 70, exploderadius = 10;
+
+    private void changeAngle(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        StartAngle = EndAngle = angle = Convert.ToInt32(args.Value);
+    }
+    private void ChangeOuterRadius(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        radius = Convert.ToInt32(args.Value);
+        OuterRadius = radius + "%";
+    }
+    private void ChangeExplodeRadius(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        exploderadius = Convert.ToInt32(args.Value);
+        ExplodeRadius = exploderadius + "%";
+    }
+    private void ChangeExplodeIndex(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        ExplodeIndex = Convert.ToInt32(args.Value);
+    }
+    public class PieData
+    {
+        public string Browser { get; set; }
+        public double Users { get; set; }
+    }
+
+    private async Task Update()
+    {
+        PieChartPoints = new List<PieData>();
+
+        foreach (var goal in goals)
+        {
+            PieChartPoints.Add(new PieData { Browser = goal.GoalName, Users = Convert.ToDouble(goal.Allocation) });
+        }
     }
 }

@@ -17,7 +17,7 @@ else
             <tr>
                 <th>
                     @*Add new income button*@
-                    <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">
+                    <button class="btn btn-primary btn-sm" @onclick="@(() => NavManager.NavigateTo($"/income-form/{new Guid()}"))">
                         <span class="oi oi-plus" aria-hidden="true"></span>
                     </button>
                 </th>
@@ -34,7 +34,7 @@ else
                 <tr>
                     <td>
                         @*Edit income button*@
-                        <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.Id}"))">
+                        <button class="btn btn-primary btn-sm" @onclick="@(() => NavManager.NavigateTo($"/Income-form/{income.Id}"))">
                             <span class="oi oi-pencil" aria-hidden="true"></span>
                         </button>
                         @*<button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">
@@ -59,7 +59,7 @@ else
         </tfoot>
     </table>
 
-    <input type="range" min="12" max="1200" step="1" value="@months"
+    <input type="range" min="12" max="520" step="1" value="@months"
          @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
     <table class="table">
         <thead>
