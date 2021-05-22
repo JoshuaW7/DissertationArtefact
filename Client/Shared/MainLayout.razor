@@ -9,12 +9,13 @@
 
     <div class="main">
         <div class="top-row px-4">
+            <LoginDisplay />
             @if (!(user is null))
             {
-            <NavLink class="nav-link" href="@link">
-                <div class="ml-md-auto">User</div>
-                @*<span title="@user.Email">@user.Name</span>*@
-            </NavLink>
+                <NavLink class="nav-link" href="@link">
+                    <div class="ml-md-auto">User</div>
+                    @*<span title="@user.Email">@user.Name</span>*@
+                </NavLink>
 
                 <span title="@user.Email">@user.Name</span>
             }

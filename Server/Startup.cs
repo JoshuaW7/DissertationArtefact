@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +12,8 @@ using DissertationArtefact.Shared;
 using Microsoft.Extensions.Options;
 using DissertationArtefact.Server.Services;
 using Syncfusion.Blazor;
+using DissertationArtefact.Server.Models;
+using DissertationArtefact.Server.Data;
 
 namespace DissertationArtefact.Server
 {
@@ -26,12 +30,30 @@ namespace DissertationArtefact.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // requires using Microsoft.Extensions.Options
+            // requires using Microsoft.Extensions.Options - MongoDB settings
             services.Configure<Pluto2021DatabaseSettings>(
                 Configuration.GetSection(nameof(Pluto2021DatabaseSettings)));
 
             services.AddSingleton<IPluto2021DatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<Pluto2021DatabaseSettings>>().Value);
+
+            // SQL Server 
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection"))
+                );
+
+            // DB Context 
+            services.AddDatabaseDeveloperPageExceptionFilter();
+
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddIdentityServer()
+                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+
+            services.AddAuthentication()
+                .AddIdentityServerJwt();
 
             services.AddSingleton<UserService>();
             services.AddSingleton<ExpenseService>();
@@ -65,6 +87,10 @@ namespace DissertationArtefact.Server
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseIdentityServer();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
