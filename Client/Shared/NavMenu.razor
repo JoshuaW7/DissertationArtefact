@@ -1,4 +1,11 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@using DissertationArtefact.Shared; 
+@using System.Collections.Generic; 
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a href="">
         <img src="/logo512x512.png" width="40" height="40" />
     </a>
@@ -16,46 +23,51 @@
             </NavLink>
         </li>
 
-        @*<li class="nav-item px-3">
-            <NavLink class="nav-link" href="income">
-                <span class="oi oi-plus" aria-hidden="true"></span> Income
-            </NavLink>
-        </li>*@
+        <AuthorizeView>
+            <Authorized>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="incomeDB">
+                        <span class="oi oi-plus" aria-hidden="true"></span> Income
+                    </NavLink>
+                </li>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="incomeDB">
-                <span class="oi oi-plus" aria-hidden="true"></span> Income
-            </NavLink>
-        </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="expensesDB">
+                        <span class="oi oi-plus" aria-hidden="true"></span> Expenses
+                    </NavLink>
+                </li>
 
-        @*<li class="nav-item px-3">
-            <NavLink class="nav-link" href="expenses">
-                <span class="oi oi-plus" aria-hidden="true"></span> Expenses
-            </NavLink>
-        </li>*@
+                @if (Incomes && Expenses)
+                {
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="goals">
+                            <span class="oi oi-plus" aria-hidden="true"></span> Goals
+                        </NavLink>
+                    </li>
+                }
+                else
+                {
+                    @*<span class="oi oi-plus" aria-hidden="true">Goals</span>*@
+                }
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="expensesDB">
-                <span class="oi oi-plus" aria-hidden="true"></span> Expenses
-            </NavLink>
-        </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="achievements">
+                        <span class="oi oi-badge" aria-hidden="true"></span> Achievements
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="user">
+                        <span class="oi oi-cog" aria-hidden="true"></span> Settings
+                    </NavLink>
+                </li>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="goals">
-                <span class="oi oi-plus" aria-hidden="true"></span> Goals
-            </NavLink>
+            </Authorized>
+            <NotAuthorized>
+                
+            </NotAuthorized>
+        </AuthorizeView>
 
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="achievements">
-                <span class="oi oi-badge" aria-hidden="true"></span> Achievements
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="settings">
-                <span class="oi oi-cog" aria-hidden="true"></span> Settings
-            </NavLink>
-        </li>
+        
     </ul>
 </div>
 
@@ -63,6 +75,11 @@
     private bool collapseNavMenu = true;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    [Parameter]
+    public bool Expenses { get; set; }
+    [Parameter]
+    public bool Incomes { get; set; }
 
     private void ToggleNavMenu()
     {

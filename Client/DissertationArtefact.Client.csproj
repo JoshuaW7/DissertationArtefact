@@ -6,11 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Pages\AccountCreationPage.razor" />
     <Content Remove="Pages\ExpensesPage.razor" />
     <Content Remove="Pages\GoalFormPage - Copy.razor" />
     <Content Remove="Pages\GoalOriginalPage.razor" />
     <Content Remove="Pages\GoalsPage - Copy.razor" />
     <Content Remove="Pages\IncomePage.razor" />
+    <Content Remove="Pages\LoginPage.razor" />
   </ItemGroup>
 
   <ItemGroup>

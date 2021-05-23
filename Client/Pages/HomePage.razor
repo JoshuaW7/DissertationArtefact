@@ -1,6 +1,79 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@using Pluto=DissertationArtefact.Shared
+@using System.Linq; 
+@using DissertationArtefact.Client.Shared
+
+@inject HttpClient Http
+@inject NavigationManager NavManager
 
 <h1>Welcome to Pluto!</h1>
 
-Pluto is an application which aims to help you obtain your goals sooner.
+<AuthorizeView>
+    <Authorized>
+        @if (goals is null)
+        {
+            <div>Fetching goals...</div>
+        }
+        else
+        {
+            <div>You have @goals.Count() goals</div>
+        }
+
+    </Authorized>
+    <NotAuthorized>
+        <div>Pluto is an application which aims to help you obtain your goals sooner.</div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+    private List<Pluto.Goal> goals;
+
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+            goals = await Http.GetFromJsonAsync<List<Pluto.Goal>>($"api/goal/user/{mongoDbUser.Id}");
+        }
+    }
+
+    private async Task<Pluto.User> GetMongoDbUser (string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if(mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
+    }
+}
+
 

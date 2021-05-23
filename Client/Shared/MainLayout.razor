@@ -1,31 +1,20 @@
 ﻿@inherits LayoutComponentBase
 @inject HttpClient Http
 @using DissertationArtefact.Shared;
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@using Pluto = DissertationArtefact.Shared
 
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
+        <NavMenu Expenses="hasExpenses" Incomes="hasIncome" />
     </div>
 
     <div class="main">
         <div class="top-row px-4">
             <LoginDisplay />
-            @if (!(user is null))
-            {
-                <NavLink class="nav-link" href="@link">
-                    <div class="ml-md-auto">User</div>
-                    @*<span title="@user.Email">@user.Name</span>*@
-                </NavLink>
-
-                <span title="@user.Email">@user.Name</span>
-            }
-            else
-            {
-                <NavLink class="nav-link" href="user">
-                    <span title="New User">User :-)</span>
-
-                </NavLink>
-            }
         </div>
 
         <div class="content px-4">
@@ -35,13 +24,67 @@
 </div>
 
 @code {
+
     private string link;
-    private User user;
+
+    private List<Income> incomes;
+    private List<Expense> expenses;
+
+    private bool hasExpenses = false;
+    private bool hasIncome = false;
+
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        string abc = "6091a3f06dbeb16f2aa3abd4";
-        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
-        link = "user/" + user.Id;
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);
+            mongoDbUser = await GetMongoDbUser(userId, user);
+
+            incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
+            expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
+
+            hasExpenses = expenses.Count() > 0;
+            hasIncome = incomes.Count() > 0;
+        }
+
+
+
+        //string abc = "6091a3f06dbeb16f2aa3abd4";
+        //user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
+        //link = "user/" + user.Id;
+    }
+
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
     }
 }

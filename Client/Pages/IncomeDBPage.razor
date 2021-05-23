@@ -1,7 +1,13 @@
 ﻿@page "/incomeDB"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
 @using DissertationArtefact.Shared
+@using Pluto = DissertationArtefact.Shared
 @inject HttpClient Http
 @inject NavigationManager NavManager
+@attribute [Authorize]
 
 <h1>Income</h1>
 
@@ -47,20 +53,20 @@ else
                     <td>@income.PaymentDate</td>
                     <td>@income.Frequency</td>
                     <td>@income.SenderName</td>
-                    <td style="text-align:right;">@income.Amount.ToString(currencyPref)</td>
+                    <td style="text-align:right;">@income.Amount.ToString(@*currencyPref*@)</td>
                 </tr>
             }
 
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6" style="text-align:right;"> <b>Total: @incomes.Sum(i => i.Amount).ToString(currencyPref)</b></td>
+                <td colspan="6" style="text-align:right;"> <b>Total: @incomes.Sum(i => i.Amount).ToString(@*currencyPref*@)</b></td>
             </tr>
         </tfoot>
     </table>
 
     <input type="range" min="12" max="520" step="1" value="@months"
-         @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
+           @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
     <table class="table">
         <thead>
             <tr>
@@ -86,17 +92,30 @@ else
 @code {
 
     private List<Income> incomes;
-    private User user;
-    private string currencyPref = "£0.00";
+    //private string currencyPref = "£0.00";
 
     private Dictionary<(int, int), decimal> projectedIncome;
     private int months = 12;
 
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
+        //mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/6091a3f06dbeb16f2aa3abd4");
 
-        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+        }
+
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
         projectedIncome = new PlutoFunctions().IncomeProjection(months, incomes);
     }
 
@@ -111,5 +130,32 @@ else
     protected async Task ProjectionChanged()
     {
         projectedIncome = new PlutoFunctions().IncomeProjection(months, incomes);
+    }
+
+
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
     }
 }

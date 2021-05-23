@@ -1,60 +1,66 @@
 ﻿@page "/income-form/{id}"
 @using DissertationArtefact.Shared
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@using Pluto = DissertationArtefact.Shared
 @inject HttpClient Http
 @inject NavigationManager NavManager
-
+@attribute [Authorize]
 
 
 @if (income == null)
 {
-<p><em>Loading income</em></p>
+    <p><em>Loading income</em></p>
 }
 else
 {
 
-<h1>Income Form
-    <button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
-        </svg>
-    </button>
-</h1>
+    <h1>
+        Income Form
+        <button class="btn btn-danger" @onclick="@((async () => await Delete(income)))">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+            </svg>
+        </button>
+    </h1>
 
-<form>
-    <div class="form-group">
-        <label for="" class="form-label">Income Name: </label>
-        <input @bind="@income.LabelName" class="form-control" />
-    </div>
+    <form>
+        <div class="form-group">
+            <label for="" class="form-label">Income Name: </label>
+            <input @bind="@income.LabelName" class="form-control" />
+        </div>
 
-    <div class="form-group">
-        <label for="" class="form-label">Payment Date:</label>
-        <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" class="form-control" />
-    </div>
+        <div class="form-group">
+            <label for="" class="form-label">Payment Date:</label>
+            <input @bind="@income.PaymentDate" @bind:format="yyyy-MM-dd" class="form-control" />
+        </div>
 
-    <div class="form-group">
-        <label for="" class="form-label">Frequency: </label>
-        <select @bind="income.Frequency" class="form-control">
-            <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
-            <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
-            <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
-            <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
-        </select>
-    </div>
+        <div class="form-group">
+            <label for="" class="form-label">Frequency: </label>
+            <select @bind="income.Frequency" class="form-control">
+                <option value="@IncomeFrequencies.Annually">@nameof(IncomeFrequencies.Annually)</option>
+                <option value="@IncomeFrequencies.Monthly">@nameof(IncomeFrequencies.Monthly)</option>
+                <option value="@IncomeFrequencies.Weekly">@nameof(IncomeFrequencies.Weekly)</option>
+                <option value="@IncomeFrequencies.OneTime">@nameof(IncomeFrequencies.OneTime)</option>
+            </select>
+        </div>
 
-    <div class="form-group">
-        <label for="" class="form-label">Sender: </label>
-        <input @bind="@income.SenderName" class="form-control"/>
-    </div>
+        <div class="form-group">
+            <label for="" class="form-label">Sender: </label>
+            <input @bind="@income.SenderName" class="form-control" />
+        </div>
 
-    <div class="form-group">
-        <label for="" class="form-label">Amount: </label>
-        <input @bind="@income.Amount" class="form-control"/>
-    </div>
-</form>
+        <div class="form-group">
+            <label for="" class="form-label">Amount: </label>
+            <input @bind="@income.Amount" class="form-control" />
+        </div>
+    </form>
 
- <!--Bootstrap button, look into syncfusion-->
-<button class="btn btn-primary" @onclick="@(async () => await Cancel())">Back</button>
-<button class="btn btn-success" @onclick="@(async () => await Save())">Save</button>
+    <!--Bootstrap button, look into syncfusion-->
+    <button class="btn btn-primary" @onclick="@(async () => await Cancel())">Back</button>
+    <button class="btn btn-success" @onclick="@(async () => await Save())">Save</button>
 
 }
 
@@ -67,13 +73,24 @@ else
 
     private List<Income> incomes;
     private Income income;
-    private User user;
+
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        string abc = "6091a3f06dbeb16f2aa3abd4";
-        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
-        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+        }
+
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
 
         if (id == new Guid().ToString())
         {
@@ -81,7 +98,7 @@ else
             {
                 Frequency = IncomeFrequencies.Monthly,
                 PaymentDate = DateTime.Now,
-                UserId = user.Id
+                UserId = mongoDbUser.Id
             };
         }
         else
@@ -113,6 +130,32 @@ else
         var result = await Http.DeleteAsync($"api/income/{income.Id}");
         incomes.Remove(income);
         NavManager.NavigateTo("incomeDB");
+    }
+
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
     }
 }
 

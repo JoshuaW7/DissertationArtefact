@@ -1,13 +1,19 @@
 ﻿@page "/expensesDB"
 @using DissertationArtefact.Shared
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@using Pluto = DissertationArtefact.Shared
 @inject HttpClient Http
 @inject NavigationManager NavManager
+@attribute [Authorize]
 
 <h1>Expenses</h1>
 
 @if (expenses == null)
 {
-    <p><em>Loading expenses database...</em></p>
+    <p><em>...</em></p>
 }
 else
 {
@@ -45,105 +51,105 @@ else
                     <td class="d-none d-sm-block">@expense.Frequency</td>
                     <td>@expense.Category</td>
                     <td class="d-none d-sm-block">@expense.Type</td>
-                    <td style="text-align:right;">@expense.Amount.ToString(currencyPref)</td>
+                    <td style="text-align:right;">@expense.Amount.ToString(mongoDbUser.CurrencyPref)</td>
                 </tr>
             }
 
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="7" style="text-align:right;"><b>Total: @expenses.Sum(i => i.Amount).ToString(currencyPref)</b></td>
+                <td colspan="7" style="text-align:right;"><b>Total: @expenses.Sum(i => i.Amount).ToString(mongoDbUser.CurrencyPref)</b></td>
             </tr>
             <tr>
-                <td colspan="7" style="text-align:right;"><b>Disposable Income: £@plutoFunctions.DisposableIncome(incomes, expenses)</b></td>
+                <td colspan="7" style="text-align:right;"><b>Disposable Income: @plutoFunctions.DisposableIncome(incomes, expenses).ToString(mongoDbUser.CurrencyPref)</b></td>
             </tr>
         </tfoot>
     </table>
-
     <input type="range" min="12" max="520" step="1" value="@months"
            @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Year</th>
-                <th>Month</th>
-                <th>Income</th>
-                <th>Expenses</th>
-                <th>Disposable Income</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var i in incExptDict)
-            {
+    @if (!(incExptDict is null))
+    {
+        <table class="table">
+            <thead>
                 <tr>
-
-
-                    <td>@i.Item1</td>
-                    <td>@i.Item2 </td>
-                    <td>@i.Item3</td>
-                    <td>@i.Item4</td>
-                    <td>@i.Item5</td>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Income</th>
+                    <th>Expenses</th>
+                    <th>Disposable Income</th>
                 </tr>
-            }
-
-        </tbody>
-        <tfoot>
-            <tr>
-                <td></td>
-                <td><b>All Expenses: </b></td>
-                <td><b>@incExptDict.Sum(i => i.Item3)</b></td>
-                <td><b>@incExptDict.Sum(i => i.Item4)</b></td>
-                <td><b>@incExptDict.Sum(i => i.Item5)</b></td>
-            </tr>
-        </tfoot>
-    </table>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Year</th>
-                <th>Month</th>
-                <th>Income</th>
-                <th>Expenses</th>
-                <th>Disposable Income</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var i in incExptEssentialsDict)
-            {
+            </thead>
+            <tbody>
+                @foreach (var i in incExptDict)
+                {
+                    <tr>
+                        <td>@i.Item1</td>
+                        <td>@i.Item2 </td>
+                        <td>@i.Item3</td>
+                        <td>@i.Item4</td>
+                        <td>@i.Item5</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
                 <tr>
-
-
-                    <td>@i.Item1</td>
-                    <td>@i.Item2 </td>
-                    <td>@i.Item3</td>
-                    <td>@i.Item4</td>
-                    <td>@i.Item5</td>
+                    <td></td>
+                    <td><b>All Expenses: </b></td>
+                    <td><b>@incExptDict.Sum(i => i.Item3)</b></td>
+                    <td><b>@incExptDict.Sum(i => i.Item4)</b></td>
+                    <td><b>@incExptDict.Sum(i => i.Item5)</b></td>
                 </tr>
-            }
+            </tfoot>
+        </table>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Income</th>
+                    <th>Expenses</th>
+                    <th>Disposable Income</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in incExptEssentialsDict)
+                {
+                    <tr>
+                        <td>@i.Item1</td>
+                        <td>@i.Item2 </td>
+                        <td>@i.Item3</td>
+                        <td>@i.Item4</td>
+                        <td>@i.Item5</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td><b>Essential Expenses: </b></td>
+                    <td><b>@incExptEssentialsDict.Sum(i => i.Item3)</b></td>
+                    <td><b>@incExptEssentialsDict.Sum(i => i.Item4)</b></td>
+                    <td><b>@incExptEssentialsDict.Sum(i => i.Item5)</b></td>
+                </tr>
+            </tfoot>
+        </table>
+    }
 
-        </tbody>
-        <tfoot>
-            <tr>
-                <td></td>
-                <td><b>Essential Expenses: </b></td>
-                <td><b>@incExptEssentialsDict.Sum(i => i.Item3)</b></td>
-                <td><b>@incExptEssentialsDict.Sum(i => i.Item4)</b></td>
-                <td><b>@incExptEssentialsDict.Sum(i => i.Item5)</b></td>
-            </tr>
-        </tfoot>
-    </table>
+
 }
 
 @code {
     private List<Expense> expenses;
     private List<Income> incomes;
     private PlutoFunctions plutoFunctions;
-    private User user;
-    private string currencyPref = "£0.00";
+    //private string currencyPref = "£0.00";
+
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
 
     private Dictionary<(int, int), decimal> projectedExpense;
     private Dictionary<(int, int), decimal> projectedIncome;
@@ -153,18 +159,22 @@ else
 
     private int months = 12;
 
-
     protected override async Task OnInitializedAsync()
     {
-        //var s = await Http.GetAsync("api/expense/user/6091a3f06dbeb16f2aa3abd4");
-        //Console.WriteLine(s);
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+        }
 
-        user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
+        //user = await Http.GetFromJsonAsync<User>($"api/users/6091a3f06dbeb16f2aa3abd4");
         plutoFunctions = new PlutoFunctions();
-        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
-        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
 
-        ProjectionChanged();
+        //ProjectionChanged();
     }
 
     protected async Task Delete(Expense expense)
@@ -181,5 +191,29 @@ else
         incExptEssentialsDict = plutoFunctions.IncomeExpenseProjection(months, incomes, expenses, new Types[] { Types.Essential });
     }
 
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
 
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
+    }
 }

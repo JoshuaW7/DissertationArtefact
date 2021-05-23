@@ -43,6 +43,19 @@ namespace DissertationArtefact.Server.Controllers
             return user;
         }
 
+        [HttpGet("guid/{id}")]
+        public ActionResult<User> GetByGuid(Guid id)
+        {
+            User user = _usersService.Get(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user;
+        }
+
 
         //[HttpGet("{id}")]
         //public User Get(string id)
@@ -59,7 +72,7 @@ namespace DissertationArtefact.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(User user)
         {
-            if (user.Id.Length == 0)
+            if (string.IsNullOrEmpty(user.Id))
                 _usersService.Create(user);
             else
                 _usersService.Update(user.Id, user);

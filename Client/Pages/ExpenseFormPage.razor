@@ -1,20 +1,26 @@
 ﻿@page "/expense-form/{id}"
 @using DissertationArtefact.Shared
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@using Pluto = DissertationArtefact.Shared
 @inject HttpClient Http
 @inject NavigationManager NavManager
-
+@attribute [Authorize]
 
 
 @if (expense == null)
 {
-    <p><em>Loading expense</em></p>
+    <p><em>...</em></p>
 }
 else
 {
 
-    <h1>Expense Form                         
+    <h1>
+        Expense Form
         <button class="btn btn-danger"
-            @onclick="@((async () => await Delete(expense)))">
+                @onclick="@((async () => await Delete(expense)))">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                 <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
             </svg>
@@ -84,14 +90,25 @@ else
     public string id { get; set; }
 
     private Expense expense;
-    private User user;
     private List<Expense> expenses;
+
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        string abc = "6091a3f06dbeb16f2aa3abd4";
-        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
-        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+        }
+
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
 
         if (id == new Guid().ToString()) //(string.IsNullOrEmpty(id)) ...not sure what this is for.. might be tired eyes
         {
@@ -99,7 +116,7 @@ else
             {
                 Frequency = ExpenseFrequencies.OneTime,
                 PaymentDate = DateTime.Now,
-                UserId = user.Id
+                UserId = mongoDbUser.Id
             };
         }
         else
@@ -115,7 +132,7 @@ else
 
     protected async Task Save()
     {
-        expense.UserId = user.Id;
+        expense.UserId = mongoDbUser.Id;
         var result = await Http.PostAsJsonAsync("api/expense", expense, null);
 
         NavManager.NavigateTo("expensesDB");
@@ -131,7 +148,34 @@ else
         Console.WriteLine($"Deleting id:{expense.Id}");
         var result = await Http.DeleteAsync($"api/expense/{expense.Id}");
 
-        expenses.Remove(expense);
+        //expenses.Remove(expense);
+        NavManager.NavigateTo("expensesDB");
+    }
+
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
     }
 }
 

@@ -1,19 +1,31 @@
 ﻿@page "/user"
-@page "/user/{id}"
-
 @inject HttpClient Http
 @inject NavigationManager NavManager
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
 @using Microsoft.JSInterop;
 @using DissertationArtefact.Shared;
+@using Pluto = DissertationArtefact.Shared
 @inject IJSRuntime JS
+@attribute [Authorize]
 
 <h1>User</h1>
 
-@if (!(user is null))
+@if (!(mongoDbUser is null))
 {
     <div>
         <label>Name</label>
-        <input @bind="user.Name" />
+        <input @bind="mongoDbUser.Name" />
+    </div>
+    <div>
+        <label>Currency Format</label>
+        <select @bind="mongoDbUser.CurrencyPref">
+            <option>£0.00</option>
+            <option>$0.00</option>
+            <option>€0.00</option>
+        </select>
     </div>
 
     <button class="btn btn-danger" @onclick="@(async () => await NavBack())">Back</button>
@@ -24,19 +36,32 @@
 
 
 @code {
-    [Parameter]
-    public string id { get; set; }
+    //[Parameter]
+    //public string id { get; set; }
 
-    private User user;
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
+
     // no error handling
     protected override async Task OnInitializedAsync()
     {
-        user = await Http.GetFromJsonAsync<User>($"api/users/{id}");
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+        }
+
+        //user = await Http.GetFromJsonAsync<User>($"api/users/{id}");
     }
 
     private async Task Save()
     {
-        await Http.PostAsJsonAsync("api/users", user);
+        await Http.PostAsJsonAsync("api/users", mongoDbUser);
 
         await NavBack();
     }
@@ -44,5 +69,31 @@
     private async Task NavBack()
     {
         await JS.InvokeVoidAsync("window.history.go", -1);
+    }
+
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
     }
 }

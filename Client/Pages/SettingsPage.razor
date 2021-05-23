@@ -1,5 +1,9 @@
 ﻿@page "/settings"
-
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
+@attribute [Authorize]
 <h1>Settings</h1>
 
 Here you can change your settings.

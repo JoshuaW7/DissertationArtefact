@@ -13,8 +13,10 @@ namespace DissertationArtefact.Shared
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
+        public string SubjectId { get; set; }
         public string Name { get; set; }
         public DateTime CreatedOn { get; set; }
         public string Email { get; set; }
+        public string? CurrencyPref { get; set; } = "£0.00";
     }
 }

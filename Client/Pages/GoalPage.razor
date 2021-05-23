@@ -2,10 +2,16 @@
 @page "/goal/{id}"
 @inject HttpClient Http
 @inject NavigationManager NavManager
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims;
 @using Microsoft.JSInterop;
 @using DissertationArtefact.Shared;
 @using Syncfusion.Blazor.Charts;
+@using Pluto = DissertationArtefact.Shared
 @inject IJSRuntime JS
+@attribute [Authorize]
 
 
 
@@ -50,12 +56,12 @@
 
     @*@oninput= "@((args) => goal.TargetAmount = Convert.ToInt32(String.IsNullOrEmpty((String)args.Value)? 0: Convert.ToInt32(args.Value)))" @onchange = "AllocationChanged"*@
 
-<form class="row row-cols-lg-auto g-3 align-items-center">
-</form>
+    <form class="row row-cols-lg-auto g-3 align-items-center">
+    </form>
 
-<div class="col-md-1">
-    <button class="btn btn-success btn-sm" @onclick="@(async () => await Save2021())">Save</button>
-</div>
+    <div class="col-md-1">
+        <button class="btn btn-success btn-sm" @onclick="@(async () => await Save2021())">Save</button>
+    </div>
 }
 
 
@@ -159,8 +165,8 @@
                 <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Diamond">
                 </ChartMarker>
             </ChartSeries>
-            <ChartSeries DataSource="@(new List<Contribution> { new Contribution { MonthYear = new DateTime(2021, 5, 1), Amount = 20000 }, new Contribution { MonthYear = new DateTime(2025, 5, 1), Amount = 20000 } })" Name="Goal" XName="MonthYear" Width="2"
-                         Opacity="0.7" YName="Amount" Type="ChartSeriesType.Line" Fill="Black">
+            <ChartSeries DataSource="@goalTarget" Name="Goal" XName="MonthYear" Width="2"
+                         Opacity="0.7" YName="Amount" Type="ChartSeriesType.Line" DashArray="5" Fill="Black">
             </ChartSeries>
         </ChartSeriesCollection>
     </SfChart>
@@ -229,16 +235,22 @@
 
 @code
 {
-    [Parameter]
-    public string id { get; set; }
+        [Parameter]
+        public string id { get; set; }
 
-    private User user;
+    private ClaimsPrincipal user;
+    private Pluto.User mongoDbUser;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
+
     private List<Goal> goals;
     private List<Income> incomes;
     private List<Expense> expenses;
     private List<(int, int, decimal, decimal, decimal)> incomeExpenses;
 
     private Goal goal;
+
     private int months = 520;
     private PlutoFunctions plutoFunctions;
     private List<(int, decimal, decimal)> intervals;
@@ -259,23 +271,28 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthState;
+        user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            mongoDbUser = await GetMongoDbUser(userId, user);
+        }
 
-        string abc = "6091a3f06dbeb16f2aa3abd4";
-        user = await Http.GetFromJsonAsync<User>($"api/users/{abc}");
-
-        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{user.Id}");
-        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{user.Id}");
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
 
 
         if (string.IsNullOrEmpty(id))
         {
-            goal = new Goal { GoalName = "New goal", StartAmount = 0, Allocation = 100, TargetAmount = 0, GoalCategory = GoalCategories.General, UserId = user.Id };
+            goal = new Goal { GoalName = "New goal", StartAmount = 0, Allocation = 100, TargetAmount = 0, GoalCategory = GoalCategories.General, UserId = mongoDbUser.Id };
             //var response = await Http.PostAsJsonAsync<Goal>("api/goal", goal, null);
             //goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{user.Id}");
         }
         else
         {
             goal = await Http.GetFromJsonAsync<Goal>($"api/goal/{id}");
+            goalTarget = new List<Contribution> { new Contribution { MonthYear = new DateTime(2021, 5, 1), Amount = goal.TargetAmount }, new Contribution { MonthYear = new DateTime(2025, 5, 1), Amount = goal.TargetAmount } };
         }
 
         plutoFunctions = new PlutoFunctions();
@@ -346,7 +363,7 @@
 
     protected async Task Save2021()
     {
-        goal.UserId = user.Id;
+        goal.UserId = mongoDbUser.Id;
         var result = await Http.PostAsJsonAsync("api/goal", goal, null);
     }
 
@@ -361,5 +378,31 @@
         var result = await Http.DeleteAsync($"api/goal/{goal.Id}");
 
         NavManager.NavigateTo("goals");
+    }
+
+    // Auth overhead
+    private async Task<Pluto.User> GetMongoDbUser(string SubjectId, ClaimsPrincipal user)
+    {
+        Pluto.User mongoDbUser = null;
+        try
+        {
+            mongoDbUser = await Http.GetFromJsonAsync<Pluto.User>($"api/users/guid/{SubjectId}");
+        }
+        catch
+        {
+        }
+
+        if (mongoDbUser is null)
+        {
+            mongoDbUser = new Pluto.User { SubjectId = SubjectId, CreatedOn = DateTime.Now, Email = "", Name = user.Identity.Name };
+            await Save(mongoDbUser);
+            return await GetMongoDbUser(SubjectId, user);
+        }
+        return mongoDbUser;
+    }
+
+    private async Task Save(Pluto.User user)
+    {
+        await Http.PostAsJsonAsync("api/users", user);
     }
 }
