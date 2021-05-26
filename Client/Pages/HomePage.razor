@@ -20,12 +20,23 @@
         }
         else
         {
+            <div>Feel free to explore Pluto.</div>
+            <div>Start by entering some income and expenses.</div>
             <div>You have @goals.Count() goals</div>
+
         }
 
     </Authorized>
     <NotAuthorized>
-        <div>Pluto is an application which aims to help you obtain your goals sooner.</div>
+        <div>Please login or register below: </div>
+        <div class="col-md-3">
+            <NavLink class="nav-link" href="authentication/login">
+                <button class="btn-block btn-primary btn-lg">Log in</button>
+            </NavLink>
+            <NavLink class="nav-link" href="authentication/register">
+                <button class="btn-block btn-primary btn-lg">Register</button>
+            </NavLink>
+        </div>
     </NotAuthorized>
 </AuthorizeView>
 

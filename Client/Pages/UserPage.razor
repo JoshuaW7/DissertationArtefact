@@ -27,6 +27,42 @@
             <option>€0.00</option>
         </select>
     </div>
+    <div>
+        <label>Tester: </label>
+        <input type="checkbox"  @bind="mongoDbUser.IsTester" />
+    </div>
+
+    // Profile auto fill feature
+    @if (incomes is null && expenses is null)
+    {
+        if (incomes.Count() == 0 && expenses.Count() == 0)
+        {
+            <div>
+                You haven't created any income or expenses yet to get set up.
+                Here is our quick start helper:
+
+            </div>
+            <div>
+                <label>In a relationship?</label>
+                <input @bind="mongoDbUser.InRelationship" />
+            </div>
+            <div>
+                <label>What is your age?</label>
+                <select @bind="mongoDbUser.AgeRange">
+                    @foreach (AgeRanges ageRange in (AgeRanges[])Enum.GetValues(typeof(AgeRanges)))
+                    {
+                        <option value="@ageRange">@ageRange</option>
+                    }
+                </select>
+            </div>
+            <div>
+                @* Populate potential income and expenses *@
+
+            </div>
+
+            <button @onclick="@AutoFill">Auto Fill</button>
+        }
+    }
 
     <button class="btn btn-danger" @onclick="@(async () => await NavBack())">Back</button>
     <button class="btn btn-primary" @onclick="@(async () => await Save())">OK</button>
@@ -38,6 +74,13 @@
 @code {
     //[Parameter]
     //public string id { get; set; }
+
+    private List<Expense> expenses;
+    private List<Income> incomes;
+    private PlutoFunctions plutoFunctions;
+
+    private List<Expense> profileExpenses = new List<Expense>();
+    private List<Income> profileIncomes = new List<Income>();
 
     private ClaimsPrincipal user;
     private Pluto.User mongoDbUser;
@@ -56,6 +99,9 @@
             mongoDbUser = await GetMongoDbUser(userId, user);
         }
 
+        plutoFunctions = new PlutoFunctions();
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
         //user = await Http.GetFromJsonAsync<User>($"api/users/{id}");
     }
 
@@ -69,6 +115,58 @@
     private async Task NavBack()
     {
         await JS.InvokeVoidAsync("window.history.go", -1);
+    }
+
+    private void AutoFill()
+    {
+
+        switch (mongoDbUser.AgeRange)
+        {
+            case AgeRanges.below_18:
+                break;
+            case AgeRanges.between18to25:
+                profileIncomes = new List<Income> {
+                    new Income { LabelName = "Salary", Amount = 3000, Frequency = IncomeFrequencies.Monthly, SenderName = "Employer" }
+                };
+                profileExpenses = new List<Expense>
+                {
+                    new Expense { LabelName = "Rent", Amount= 400, Type = Types.Essential, Frequency=ExpenseFrequencies.Monthly, Category= Categories.Housing },
+                    new Expense { LabelName = "Food", Amount= 50, Type = Types.Essential, Frequency=ExpenseFrequencies.Weekly, Category= Categories.Groceries },
+                    new Expense { LabelName = "Internet", Amount= 30, Type = Types.Essential, Frequency=ExpenseFrequencies.Monthly, Category= Categories.Bill },
+                    new Expense { LabelName = "Food", Amount= 50, Type = Types.Essential, Frequency=ExpenseFrequencies.Weekly, Category= Categories.Groceries },
+                    new Expense { LabelName = "Clothes", Amount= 300, Type = Types.Discretionary, Frequency=ExpenseFrequencies.Annually, Category= Categories.Shopping },
+                };
+                break;
+            case AgeRanges.between25to45:
+                profileIncomes = new List<Income> { new Income { LabelName = "Salary", Amount = 3000, Frequency = IncomeFrequencies.Monthly, SenderName = "Employer" } };
+                break;
+            case AgeRanges.between45to55:
+                profileIncomes = new List<Income> { new Income { LabelName = "Salary", Amount = 3000, Frequency = IncomeFrequencies.Monthly, SenderName = "Employer" } };
+                break;
+            case AgeRanges.between55to65:
+                profileIncomes = new List<Income> { new Income { LabelName = "Salary", Amount = 3000, Frequency = IncomeFrequencies.Monthly, SenderName = "Employer" } };
+                break;
+            case AgeRanges.above_65:
+                profileIncomes = new List<Income>
+                {
+                    new Income { LabelName = "Salary", Amount = 300, Frequency = IncomeFrequencies.Monthly, SenderName = "Part time job" },
+                    new Income { LabelName = "Retirement", Amount = 2600, Frequency = IncomeFrequencies.Monthly, SenderName = "Part time job" },
+                };
+
+                profileExpenses = new List<Expense>
+                {
+                    new Expense { LabelName = "Rent", Amount= 400, Type = Types.Essential, Frequency=ExpenseFrequencies.Monthly, Category= Categories.Housing },
+                    new Expense { LabelName = "Food", Amount= 50, Type = Types.Essential, Frequency=ExpenseFrequencies.Weekly, Category= Categories.Groceries },
+                    new Expense { LabelName = "Internet", Amount= 30, Type = Types.Essential, Frequency=ExpenseFrequencies.Monthly, Category= Categories.Bill },
+                    new Expense { LabelName = "Food", Amount= 50, Type = Types.Essential, Frequency=ExpenseFrequencies.Weekly, Category= Categories.Groceries },
+                    new Expense { LabelName = "Clothes", Amount= 300, Type = Types.Discretionary, Frequency=ExpenseFrequencies.Annually, Category= Categories.Shopping },
+                };
+                if (mongoDbUser.InRelationship)
+                {
+                    profileExpenses.Add(new Expense { LabelName = "Life cover", Amount = 1000, Type = Types.Discretionary, Frequency = ExpenseFrequencies.Annually, Category = Categories.Insurance });
+                }
+                break;
+        }
     }
 
     // Auth overhead

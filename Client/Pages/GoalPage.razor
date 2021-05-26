@@ -10,11 +10,12 @@
 @using DissertationArtefact.Shared;
 @using Syncfusion.Blazor.Charts;
 @using Pluto = DissertationArtefact.Shared
+@using System.Text.Json
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Buttons
 @inject IJSRuntime JS
 @attribute [Authorize]
-
-
-
 
 @if (!(goal is null))
 {
@@ -26,44 +27,7 @@
             </svg>
         </button>
     </h1>
-
-    <div>
-        <div class="col-md-3">
-            <label class="visually-hidden" for="inlineFormSelectPref">Goal Name: </label>
-            <input type="text" class="form-control" @bind="@goal.GoalName" />
-        </div>
-        <div class="col-md-2">
-            <label class="visually-hidden" for="inlineFormSelectPref">Target Amount:</label>
-            <input type="text" class="form-control" @bind="@goal.TargetAmount" />
-        </div>
-        <div class="col-md-2">
-            <label class="visually-hidden" for="inlineFormSelectPref">Start Amount:</label>
-            <input type="text" class="form-control" @bind="@goal.StartAmount" />
-        </div>
-        <div class="col-md-2">
-            <label class="visually-hidden" for="inlineFormSelectPref">Category:</label>
-            <select class="form-control" id="inlineFormSelectPref" @bind="goal.GoalCategory">
-                @foreach (GoalCategories category in (GoalCategories[])Enum.GetValues(typeof(GoalCategories)))
-                {
-                    <option value="@category">@category</option>
-                }
-            </select>
-        </div>
-    </div>
-
-
-
-
-    @*@oninput= "@((args) => goal.TargetAmount = Convert.ToInt32(String.IsNullOrEmpty((String)args.Value)? 0: Convert.ToInt32(args.Value)))" @onchange = "AllocationChanged"*@
-
-    <form class="row row-cols-lg-auto g-3 align-items-center">
-    </form>
-
-    <div class="col-md-1">
-        <button class="btn btn-success btn-sm" @onclick="@(async () => await Save2021())">Save</button>
-    </div>
 }
-
 
 <style>
     #control-container {
@@ -113,33 +77,6 @@
         }
     }
 </style>
-@*<div class="control-section">
-        <SfChart ID="container" Title="Fruits Production Statistics">
-            <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
-            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="yyyy" IntervalType="IntervalType.Months" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
-                <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
-            </ChartPrimaryXAxis>
-            <ChartPrimaryYAxis LabelFormat="{value}%" RangePadding="ChartRangePadding.None" Minimum="0" Maximum="40" Interval="10">
-                <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
-                <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
-            </ChartPrimaryYAxis>
-            <ChartTooltipSettings Enable="true" Shared="true"></ChartTooltipSettings>
-            <ChartCrosshairSettings Enable="true" LineType="LineType.Vertical">
-            </ChartCrosshairSettings>
-            <ChartSeriesCollection>
-                <ChartSeries DataSource="@ChartData" Name="Banana" XName="Period" Width="2"
-                             Opacity="1" YName="Banana_ProductionRate" Type="ChartSeriesType.Line" DashArray="5">
-                    <ChartMarker Visible="true" Width="10" Height="10">
-                    </ChartMarker>
-                </ChartSeries>
-                <ChartSeries DataSource="@ChartData" Name="Apple" XName="Period" Width="2"
-                             Opacity="1" YName="Apple_ProductionRate" Type="ChartSeriesType.Line" DashArray="10">
-                    <ChartMarker Visible="true" Width="10" Height="10" Shape="ChartShape.Diamond">
-                    </ChartMarker>
-                </ChartSeries>
-            </ChartSeriesCollection>
-        </SfChart>
-    </div>*@
 
 <div class="control-section">
     <SfChart ID="container" Title="Goal Savings Projection">
@@ -172,74 +109,263 @@
     </SfChart>
 </div>
 
-<div>Expense Reduction: <b>@discReduction%</b></div>
-<input style="width:50%; height:50px;" class="form-range" type="range" min="0" max="100" step="1" value="@discReduction"
-       @oninput="@((args) => discReduction = Convert.ToInt32(args.Value))" @onchange="AllocationChanged" />
+<div style="text-align: center;">Expense Reduction: <b>@discReduction%</b></div>
+<div style="text-align: center;">
+    <input style="width:50%; height:50px; text-align:center;" class="form-range" type="range" min="0" max="100" step="1" value="@discReduction"
+           @oninput="@((args) => discReduction = Convert.ToInt32(args.Value))" @onchange="AllocationChanged" />
+</div>
 
-<div><b>@months</b> Month Projection</div>
 
-@if (!(goalCurrent is null))
+@if (isTester)
 {
-    <table class="table" style="">
-        <thead>
-            <tr>
-                <th><b>Month Year </b></th>
-                <th><b>Amount</b></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var c in goalPotential)
-            {
-                <tr>
-                    <td>@c.MonthYear</td>
-                    <td>@c.Amount</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
-@if (!(incomeExpenses is null))
+    <div><b>@months</b> Month Projection</div>
+    if (!(goalCurrent is null))
+    {
+        <table class="table" style="">
+            <thead>
+                <tr>
+                    <th><b>Month Year </b></th>
+                    <th><b>Amount</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in goalPotential)
+                {
+                    <tr>
+                        <td>@c.MonthYear</td>
+                        <td>@c.Amount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    if (!(incomeExpenses is null))
+    {
+        <table class="table" style="">
+            <thead>
+                <tr>
+                    <th><b>Year </b></th>
+                    <th><b>Month</b></th>
+                    <th><b>Income</b></th>
+                    <th><b>Essential Expenditure</b></th>
+                    <th><b>Discretionary Expenditure</b></th>
+                    <th><b>Reduced Discretionary Expenditure</b></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ((int, int, decimal, decimal, decimal) ie in incomeExpenses)
+                {
+                    var discount = ie.Item5 * (Convert.ToDecimal(discReduction) / 100.0M);
+                    <tr>
+                        <td>@ie.Item1</td>
+                        <td>@ie.Item2</td>
+                        <td>@ie.Item3</td>
+                        <td>@ie.Item4</td>
+                        <td>@ie.Item5</td>
+                        <td>£@discount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+
+}
+@*//Toast notification*@
+<div class="col-lg-4 control-section">
+    <SfToast @ref="ToastObj" ID="toast_type">
+        <ToastPosition X="@ToastPosition"></ToastPosition>
+    </SfToast>
+</div>
+<div class="col-lg-4 control-section">
+    <SfToast @ref="ToastObj" ID="toast_type">
+        <ToastPosition X="@ToastPosition"></ToastPosition>
+    </SfToast>
+</div>
+<style>
+    @@font-face {
+        font-family: 'Toast_icons';
+        src: url(data:application/x-font-ttf;charset=utf-8;base64,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) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    #toast_types button {
+        margin: 5px;
+        min-width: 160px;
+        max-width: 160px;
+    }
+
+    .toast-icons {
+        font-family: 'Toast_icons' !important;
+        speak: none;
+        font-size: 55px;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    #toast_type .e-toast-icon.e-icons {
+        height: auto;
+        font-size: 30px;
+    }
+
+    .toast-icons.e-success::before {
+        content: "\e701";
+    }
+
+    .toast-icons.e-error::before {
+        content: "\e700";
+    }
+
+    .toast-icons.e-info::before {
+        content: "\e704";
+    }
+
+    .toast-icons.e-warning::before {
+        content: "\e703";
+    }
+
+    #toast_types {
+        text-align: center;
+    }
+</style>
+
+<div class="col-lg-12 control-section card-control-section">
+    <div class="row card-layout">
+        <div class="col-lg-6 col-md-6">
+            <SfCard Orientation="CardOrientation.Horizontal" ID="Phone">
+                <img src="/flag.svg" alt="" style="width:10%; height:100px">
+                <CardStacked>
+                    <CardHeader Title="Goal Info" />
+                    <CardContent>
+                        <div>
+                            By reducing your discretionary expenses by  <b>@(discReduction)%</b> and saving an average of <b>@(avgPotentialSaving.ToString(currencyPref))</b> each month, you could achieve your goal by <b>@(potentialGoalTargetDate.ToString("MMMM yyyy"))</b>.
+                        </div>
+                        <div>
+                            Currently, by saving an average of <b>@(avgCurrentSaving.ToString(currencyPref))</b> you achieve your goal by <b>@(currentGoalTargetDate.ToString("MMMM yyyy"))</b>.
+                        </div>
+                    </CardContent>
+                </CardStacked>
+            </SfCard>
+        </div>
+        <div class="col-lg-6 col-md-6">
+            <SfCard Orientation="CardOrientation.Horizontal" ID="Phone">
+                <img src="/information1.svg" alt="" style="width:10%; height:100px">
+                <CardStacked>
+                    <CardHeader Title="Tool Tip" />
+                    <CardContent Content="The expense reduction slider can be used to show the impact of changes in your spending habits.
+                                 The allocation slider in the Goals page, can be used to distribute disposable income to specific goals." />
+                </CardStacked>
+            </SfCard>
+        </div>
+    </div>
+</div>
+<style>
+    #Phone .e-card-stacked {
+        justify-content: flex-start;
+    }
+
+    .e-card .e-card-header .e-card-header-caption .e-card-header-title {
+        font-size: 14px;
+        font-family: Helvetica, 'Segoe UI';
+        font-weight: bold;
+    }
+
+    #Trimmer {
+        height: 175px;
+    }
+
+    #Camera .e-card-content {
+        padding-top: 0px;
+    }
+
+    #Trimmer .e-card-content {
+        padding-top: 50px;
+    }
+
+    #Camera {
+        height: 50px;
+    }
+
+    .card-layout {
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .e-card.e-card-horizontal img {
+        margin: 20px;
+        width: 20px
+    }
+
+    .e-card {
+        margin: 7px;
+    }
+
+    .card-control-section .e-card.e-card-horizontal.e-product .e-card-stacked > :first-child,
+    .card-control-section .e-card.e-card-horizontal .e-card-stacked > :first-child,
+    .card-control-section .e-card.e-card-horizontal .e-card-stacked > :first-child {
+        flex-grow: 0;
+    }
+</style>
+
+@if (!(goal is null))
 {
-    <table class="table" style="">
-        <thead>
-            <tr>
-                <th><b>Year </b></th>
-                <th><b>Month</b></th>
-                <th><b>Income</b></th>
-                <th><b>Essential Expenditure</b></th>
-                <th><b>Discretionary Expenditure</b></th>
-                <th><b>Reduced Discretionary Expenditure</b></th>
 
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ((int, int, decimal, decimal, decimal) ie in incomeExpenses)
-            {
-                var discount = ie.Item5 * (Convert.ToDecimal(discReduction) / 100.0M);
-                <tr>
-                    <td>@ie.Item1</td>
-                    <td>@ie.Item2</td>
-                    <td>@ie.Item3</td>
-                    <td>@ie.Item4</td>
-                    <td>@ie.Item5</td>
-                    <td>£@discount</td>
 
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="inlineFormSelectPref">Goal Name: </label>
+            <input type="text" class="form-control" @bind="@goal.GoalName" />
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="inlineFormSelectPref">Target Amount:</label>
+            <input type="text" class="form-control" @bind="@goal.TargetAmount" />
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="inlineFormSelectPref">Start Amount:</label>
+            <input type="text" class="form-control" @bind="@goal.StartAmount" />
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="inlineFormSelectPref">Category:</label>
+            <select class="form-control" id="inlineFormSelectPref" @bind="goal.GoalCategory">
+                @foreach (GoalCategories category in (GoalCategories[])Enum.GetValues(typeof(GoalCategories)))
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden" for="inlineFormSelectPref">Allocation: </label>
+            <input disabled type="text" class="form-control" @bind="@goal.Allocation" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <button class="btn-block btn btn-success btn-sm" @onclick="@(async () => await Save2021())">Save</button>
+    </div>
 }
-
 
 
 @code
 {
-        [Parameter]
-        public string id { get; set; }
+    [Parameter]
+    public string id { get; set; }
 
     private ClaimsPrincipal user;
     private Pluto.User mongoDbUser;
+
+    private bool isTester { get; set; } = false;
+    private DateTime potentialGoalTargetDate { get; set; } = DateTime.Now;
+    private DateTime currentGoalTargetDate { get; set; } = DateTime.Now;
+    private decimal avgPotentialSaving { get; set; } = 0.0M;
+    private decimal avgCurrentSaving { get; set; } = 0.0M;
+    private string currencyPref { get; set; } = "£0";
 
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; }
@@ -251,7 +377,7 @@
 
     private Goal goal;
 
-    private int months = 520;
+    private int months = 60;
     private PlutoFunctions plutoFunctions;
     private List<(int, decimal, decimal)> intervals;
 
@@ -269,36 +395,45 @@
     private int goalCurrentLength = 0;
     private string goalCurrentAnimation;
 
+    private string card1Content = "";
+
+    private SfToast ToastObj;
+    private string ToastPosition = "Right";
+    private List<ToastModel> Toast = new List<ToastModel>
+{
+        new ToastModel{ Title = "Warning!", Content="There was a problem with your network connection.", CssClass="e-toast-warning", Icon="e-warning toast-icons" },
+        new ToastModel { Title = "Success!", Content = "Your goal has been saved successfully.", CssClass = "e-toast-success", Icon = "e-success toast-icons" },
+        new ToastModel{ Title = "Error!", Content="A problem has been occurred while submitting your data.", CssClass="e-toast-danger", Icon="e-error toast-icons" },
+        new ToastModel{ Title = "Information!", Content="Please read the comments carefully.", CssClass="e-toast-info", Icon="e-info toast-icons" }
+    };
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthState;
         user = authState.User;
         if (user.Identity.IsAuthenticated)
         {
-            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            string userId = AppUser.GetClaimValue("sub", user.Claims);
             mongoDbUser = await GetMongoDbUser(userId, user);
+            isTester = mongoDbUser.IsTester;
+            currencyPref = mongoDbUser.CurrencyPref;
         }
 
         incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
         expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
-
+        goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{mongoDbUser.Id}");
 
         if (string.IsNullOrEmpty(id))
         {
-            goal = new Goal { GoalName = "New goal", StartAmount = 0, Allocation = 100, TargetAmount = 0, GoalCategory = GoalCategories.General, UserId = mongoDbUser.Id };
-            //var response = await Http.PostAsJsonAsync<Goal>("api/goal", goal, null);
-            //goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{user.Id}");
+            decimal goalAllocation = CalculateGoalAllocation();
+            goal = new Goal { GoalName = "New goal", StartAmount = 0, Allocation = goalAllocation, TargetAmount = 0, GoalCategory = GoalCategories.General, UserId = mongoDbUser.Id };
         }
         else
         {
             goal = await Http.GetFromJsonAsync<Goal>($"api/goal/{id}");
-            goalTarget = new List<Contribution> { new Contribution { MonthYear = new DateTime(2021, 5, 1), Amount = goal.TargetAmount }, new Contribution { MonthYear = new DateTime(2025, 5, 1), Amount = goal.TargetAmount } };
         }
 
         plutoFunctions = new PlutoFunctions();
-
-        //months = plutoFunctions.MonthsToGoal(goal, incomes, expenses, goal.Allocation);
-        //intervals = plutoFunctions.Intervals(goal, incomes, expenses, goal.Allocation);
 
         UpdateCollections();
     }
@@ -312,12 +447,35 @@
         goalCurrentAnimation = $"#container_Series_0_Point_{goalCurrent.Count - 1}_Symbol";
         goalPotentialAnimation = $"#container_Series_1_Point_{goalPotential.Count - 1}_Symbol";
 
+        int monthsUntilGoal = GetMonthDifference(goalCurrent.First().MonthYear, goalCurrent.Last().MonthYear);
+        goalTarget = new List<Contribution>();
+        goalTarget.Add(new Contribution { MonthYear = goalCurrent.First().MonthYear, Amount = goal.TargetAmount });
+
+        potentialGoalTargetDate = goalPotential.Last().MonthYear;
+        currentGoalTargetDate = goalCurrent.Last().MonthYear;
+        avgPotentialSaving = goal.TargetAmount / goalPotential.Count();
+        avgCurrentSaving = goal.TargetAmount / goalCurrent.Count();
+
+        card1Content = $"By reducing your discretionary expenses by {discReduction}% and saving an average of {avgPotentialSaving.ToString(mongoDbUser.CurrencyPref)} each month, you could achieve your goal by {potentialGoalTargetDate.ToString("MMMM yy")}. "
+            + $"Currently, by saving an average of {avgCurrentSaving.ToString(mongoDbUser.CurrencyPref)} you achieve your goal by {currentGoalTargetDate.ToString("MMMM yy")}.";
+
+        for (int m = 1; m < monthsUntilGoal + 1; m++)
+        {
+            goalTarget.Add(new Contribution { MonthYear = goalCurrent.First().MonthYear.AddMonths(m), Amount = goal.TargetAmount });
+
+        }
+
         limitUpper = plutoFunctions.getLimit(goalPotential);
+    }
+
+    private int GetMonthDifference(DateTime startDate, DateTime endDate)
+    {
+        int monthsApart = 12 * (startDate.Year - endDate.Year) + startDate.Month - endDate.Month;
+        return Math.Abs(monthsApart);
     }
 
     private void AllocationChanged()
     {
-
         UpdateCollections();
     }
 
@@ -326,45 +484,45 @@
         UpdateCollections();
     }
 
-
-    ////redundant
-    //public class ChartData
-    //{
-    //    public int X { get; set; }
-    //    public decimal Y { get; set; }
-    //    public decimal Z { get; set; }
-    //    public decimal A { get; set; }
-    //}
-
     public class IntervalAmount
     {
         public int Interval { get; set; }
         public decimal Amount { get; set; }
     }
 
-    //public class LineChartData
-    //{
-    //    public DateTime Period { get; set; }
-    //    public double Banana_ProductionRate { get; set; }
-    //    public double Apple_ProductionRate { get; set; }
-    //}
-
-    //    public List<LineChartData> ChartData = new List<LineChartData>
-    //{
-    //        new LineChartData { Period = new DateTime(2005, 01, 01), Banana_ProductionRate = 12, Apple_ProductionRate = 9.5 },
-    //        new LineChartData { Period = new DateTime(2006, 01, 01), Banana_ProductionRate = 10.6, Apple_ProductionRate = 19.9 },
-    //        new LineChartData { Period = new DateTime(2007, 01, 01), Banana_ProductionRate = 15.6, Apple_ProductionRate = 25.2 },
-    //        new LineChartData { Period = new DateTime(2008, 01, 01), Banana_ProductionRate = 38.6, Apple_ProductionRate = 36 },
-    //        new LineChartData { Period = new DateTime(2009, 01, 01), Banana_ProductionRate = 27.4, Apple_ProductionRate = 16.6 },
-    //        new LineChartData { Period = new DateTime(2010, 01, 01), Banana_ProductionRate = 23.5, Apple_ProductionRate = 14.2 },
-    //        new LineChartData { Period = new DateTime(2011, 01, 01), Banana_ProductionRate = 16.6, Apple_ProductionRate = 10.3 }
-    //    };
-
-
     protected async Task Save2021()
     {
         goal.UserId = mongoDbUser.Id;
-        var result = await Http.PostAsJsonAsync("api/goal", goal, null);
+        using var response = await Http.PostAsJsonAsync("api/goal", goal, null);
+        // var data = await response.Content.ReadAsStringAsync();
+        //if (response.IsSuccessStatusCode)
+        //{
+        //    goal = JsonSerializer.Deserialize<Goal>(data);
+        //}
+        // goal = await Http.GetFromJsonAsync<Goal>($"api/goal/{goal.Id}");
+
+        if (string.IsNullOrEmpty(goal.Id))
+        {
+            decimal allocation = goal.Allocation;
+            var goals2 = goals.Where(g => g.Id != goal.Id).ToList<Goal>();
+            decimal residualAllocation = 100.0M - allocation;
+            decimal goalAllocation = residualAllocation / goals2.Count();
+            foreach (var g in goals2)
+            {
+                g.Allocation = goalAllocation;
+                var result = await Http.PostAsJsonAsync("api/goal", g, null);
+            }
+        }
+
+        goal = await response.Content.ReadFromJsonAsync<Goal>();
+        var otherGoals = goals.Where(g => g.Id != goal.Id).ToList<Goal>();
+        //foreach (var g in otherGoals)
+        //{
+        //    g.Allocation = goal.Allocation;
+        //    var result = await Http.PostAsJsonAsync("api/goal", g, null);
+        //}
+
+        await this.ToastObj.Show(Toast[1]);
     }
 
     protected async Task Cancel()
@@ -377,7 +535,28 @@
         Console.WriteLine($"Deleting id:{goal.Id}");
         var result = await Http.DeleteAsync($"api/goal/{goal.Id}");
 
+        decimal goalAllocation = CalculateGoalAllocation(-1);
+        foreach (var g in goals.Where(g => g.Id != goal.Id))
+        {
+            g.Allocation = goalAllocation;
+            await Http.PostAsJsonAsync("api/goal", g, null);
+        }
+
         NavManager.NavigateTo("goals");
+    }
+
+    private async Task UpdateAllocation()
+    {
+
+    }
+
+    private decimal CalculateGoalAllocation(int actionCount = 1)
+    {
+        if (goals.Count() + actionCount <= 0)
+        {
+            return 100.0M;
+        }
+        return 100.0M / (goals.Count() + actionCount);
     }
 
     // Auth overhead

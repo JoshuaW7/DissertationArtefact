@@ -361,7 +361,7 @@ namespace DissertationArtefact.Shared
 
                 di = income - (ee + (de * (reductionPercentage / 100)));
 
-                contribAmountPerMonth = di; /*incExp.Item3-incExp.Item4+(incExp.Item5*(reductionPercentage / 100));*/
+                contribAmountPerMonth = di*(goal.Allocation/100); /*incExp.Item3-incExp.Item4+(incExp.Item5*(reductionPercentage / 100));*/
 
                 if (savedAmount + contribAmountPerMonth < goal.TargetAmount)
                 {

@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Security.Claims;
 @using Pluto = DissertationArtefact.Shared
+@using Syncfusion.Blazor.Calendars
 @inject HttpClient Http
 @inject NavigationManager NavManager
 @attribute [Authorize]
@@ -35,7 +36,8 @@ else
 
         <div class="form-group">
             <label for="" class="form-label">Payment Date:</label>
-            <input @bind="@expense.PaymentDate" @bind:format="yyyy-MM-dd" class="form-control" />
+            @*<input @bind="@expense.PaymentDate" @bind:format="dd/MM/yyyy" class="form-control" />*@
+            <SfDatePicker TValue="DateTime?" Placeholder="Payment Date: " Value="@expense.PaymentDate" Format="dd/MM/yyyy"></SfDatePicker>
         </div>
 
         <div class="form-group">
@@ -104,13 +106,13 @@ else
         user = authState.User;
         if (user.Identity.IsAuthenticated)
         {
-            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            string userId = AppUser.GetClaimValue("sub", user.Claims);
             mongoDbUser = await GetMongoDbUser(userId, user);
         }
 
         expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
 
-        if (id == new Guid().ToString()) //(string.IsNullOrEmpty(id)) ...not sure what this is for.. might be tired eyes
+        if (id == new Guid().ToString())
         {
             expense = new Expense
             {

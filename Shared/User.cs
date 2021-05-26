@@ -18,5 +18,19 @@ namespace DissertationArtefact.Shared
         public DateTime CreatedOn { get; set; }
         public string Email { get; set; }
         public string? CurrencyPref { get; set; } = "£0.00";
+        public bool InRelationship { get; set; }
+        public AgeRanges AgeRange { get; set; }
+        public bool IsTester { get; set; } = false;
+
+    }
+
+    public enum AgeRanges
+    {
+        below_18,
+        between18to25,
+        between25to45,
+        between45to55,
+        between55to65,
+        above_65,
     }
 }

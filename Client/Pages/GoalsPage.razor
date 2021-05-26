@@ -18,62 +18,54 @@
 }
 else
 {
-    @if (!(expenses is null && incomes is null))
-    {
-        if (expenses.Count() == 0 || incomes.Count() == 0)
-        {
-            <div>
-                You haven't created any income or expenses yet
-            </div>
-        }
-    }
-    else
-    {
-        <h1>
-            Goals
-            <button class="btn btn-primary" @onclick="@(() => NavManager.NavigateTo($"/goal"))">
-                <span class="oi oi-plus" aria-hidden="true"></span>
-            </button>
-        </h1>
+    <h1>
+        Goals
+        <button class="btn btn-primary" disabled="@noIncExp" @onclick="@(() => NavManager.NavigateTo($"/goal"))">
+            <span class="oi oi-plus" aria-hidden="true"></span>
+        </button>
+    </h1>
 
-        foreach (var goal in goals)
-        {
-            @*<PlutoButton buttonLabel="@goal.GoalName"></PlutoButton>*@
+    foreach (var goal in goals)
+    {
+        <div style="width:50%">
             <NavLink class="nav-link" href="@($"goal/{goal.Id}")">
                 <button class="btn btn-primary">
                     <div>@goal.GoalName</div>
-                    <div>£@goal.TargetAmount</div>
-                    <div>Allocation: <b>@goal.Allocation%</b></div>
+                    <div>@goal.TargetAmount.ToString(mongoDbUser.CurrencyPref)</div>
+                    <div>Allocation: <b>@(String.Format("{0:0.00}", goal.Allocation))%</b></div>
                 </button>
             </NavLink>
-            <div>
-                <span aria-hidden="true"></span>
-                @*<button class="btn btn-info btn-lg">*@
 
+            @if (goals.Count() > 1)
+            {
                 <div>
-                    <input style="width:50%; height:50px;" class="form-range" type="range" min="0" max="100" step="1" @bind="@goal.Allocation" />
+                    <input style="width:50%; height:50px;" class="form-range" type="range" min="0" max="100" step="1" value="@goal.Allocation"
+                           @oninput="@((args) => goal.Allocation = Convert.ToInt32(args.Value))" @onchange="@((async() => await AllocationChanged(goal)))" />
                 </div>
+            }
+        </div>
+    }
 
-            </div>
-        }
-
-        <button class="btn btn-primary" @onclick="@(async () => await Update())">Update</button>
-
-        <div class="col-lg-8 control-section sb-property-border">
+    if (goals.Count() > 1)
+    {
+        <button class="btn btn-primary" disabled="@(!allocationChanged)" @onclick="@(async () => await Update())">Update</button>
+        <div style="text-align: left;" class="col-lg-8 control-section sb-property-border">
             <div class="control-section">
                 <SfAccumulationChart Title="Goal Allocation Percentage" EnableAnimation="true">
                     <AccumulationChartTooltipSettings Enable="true"></AccumulationChartTooltipSettings>
                     <AccumulationChartLegendSettings Visible="false"></AccumulationChartLegendSettings>
                     <AccumulationChartSeriesCollection>
-                        <AccumulationChartSeries DataSource="@PieChartPoints" XName="Browser" YName="Users" Name="Browser" Radius="@OuterRadius" StartAngle="@StartAngle" EndAngle="@EndAngle"
+                        <AccumulationChartSeries DataSource="@PieChartPoints" XName="GoalName" YName="Allocation" Name="GoalName" Radius="@OuterRadius" StartAngle="@StartAngle" EndAngle="@EndAngle"
                                                  InnerRadius="0%" ExplodeIndex="@ExplodeIndex" Explode="true" ExplodeOffset="@ExplodeRadius">
-                            <AccumulationDataLabelSettings Visible="true" Name="Browser" Position="AccumulationLabelPosition.Outside"></AccumulationDataLabelSettings>
+                            <AccumulationDataLabelSettings Visible="true" Name="Goal" Position="AccumulationLabelPosition.Outside"></AccumulationDataLabelSettings>
                         </AccumulationChartSeries>
                     </AccumulationChartSeriesCollection>
                 </SfAccumulationChart>
             </div>
         </div>
+
     }
+
 }
 
 
@@ -87,6 +79,8 @@ else
     private List<Expense> expenses;
     private Goal goal;
     private PlutoFunctions plutoFunctions;
+    private bool allocationChanged { get; set; } = false;
+    private bool noIncExp { get; set; }
 
     private ClaimsPrincipal user;
     private Pluto.User mongoDbUser;
@@ -100,12 +94,16 @@ else
         user = authState.User;
         if (user.Identity.IsAuthenticated)
         {
-            string userId = AppUser.GetClaimValue("sub", user.Claims);        //user.Claims//user.FindFirst(ClaimTypes.NameIdentifier)//user.Claims.First(c=>c.Type=="Subject").Value;
+            string userId = AppUser.GetClaimValue("sub", user.Claims);
             mongoDbUser = await GetMongoDbUser(userId, user);
         }
 
+        incomes = await Http.GetFromJsonAsync<List<Income>>($"api/income/user/{mongoDbUser.Id}");
+        expenses = await Http.GetFromJsonAsync<List<Expense>>($"api/expense/user/{mongoDbUser.Id}");
+        noIncExp = incomes.Count() == 0 || expenses.Count() == 0;
+
         goals = await Http.GetFromJsonAsync<List<Goal>>($"api/goal/user/{mongoDbUser.Id}");
-        await Update();
+        await UpdatePieChart(true);
     }
 
     public double ExplodeIndex { get; set; } = 1;
@@ -136,18 +134,43 @@ else
     }
     public class PieData
     {
-        public string Browser { get; set; }
-        public double Users { get; set; }
+        public string GoalName { get; set; }
+        public double Allocation { get; set; }
     }
 
-    private async Task Update()
+    private async Task UpdatePieChart(bool init = false)
     {
         PieChartPoints = new List<PieData>();
 
         foreach (var goal in goals)
         {
-            PieChartPoints.Add(new PieData { Browser = goal.GoalName, Users = Convert.ToDouble(goal.Allocation) });
+            PieChartPoints.Add(new PieData { GoalName = goal.GoalName, Allocation = Convert.ToDouble(goal.Allocation) });
         }
+        // Enable button
+        if (!init)
+            allocationChanged = true;
+    }
+
+    private async Task Update()
+    {
+        foreach (var g in goals)
+        {
+            var result = await Http.PostAsJsonAsync("api/goal", g, null);
+        }
+        allocationChanged = false;
+    }
+
+    private async Task AllocationChanged(Goal goal)
+    {
+        decimal allocation = goal.Allocation;
+        var goals2 = goals.Where(g => g.Id != goal.Id).ToList<Goal>();
+        decimal residualAllocation = 100.0M - allocation;
+        decimal goalAllocation = residualAllocation / goals2.Count();
+        foreach (var g in goals2)
+        {
+            g.Allocation = goalAllocation;
+        }
+        await UpdatePieChart();
     }
 
     // Auth overhead

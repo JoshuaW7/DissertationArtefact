@@ -59,14 +59,15 @@ namespace DissertationArtefact.Server.Controllers
         {
             if (string.IsNullOrEmpty(goal.Id))
             {
-                goalService.Create(goal);
+                goal = goalService.Create(goal);
             }
             else
             {
                 goalService.Update(goal.Id, goal);
             }
-
-            return new CreatedResult($"goal/{goal.Id}", goal);
+            return new OkObjectResult(goal);
+            // Serialisation issue 
+            // return new CreatedResult($"goal/{goal.Id}", goal);
         }
     }
 }

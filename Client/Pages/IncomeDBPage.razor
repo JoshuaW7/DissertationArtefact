@@ -13,7 +13,7 @@
 
 @if (incomes == null)
 {
-    <p><i>Loading income...</i></p>
+    <p><i>...</i></p>
 }
 else
 {
@@ -50,24 +50,25 @@ else
                             </button>*@
                     </td>
                     <td>@income.LabelName</td>
-                    <td>@income.PaymentDate</td>
+                    <td>@income.PaymentDate.ToString("dd/MM/yyyy")</td>
                     <td>@income.Frequency</td>
                     <td>@income.SenderName</td>
-                    <td style="text-align:right;">@income.Amount.ToString(@*currencyPref*@)</td>
+                    <td style="text-align:right;">@income.Amount.ToString(mongoDbUser.CurrencyPref)</td>
                 </tr>
             }
 
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6" style="text-align:right;"> <b>Total: @incomes.Sum(i => i.Amount).ToString(@*currencyPref*@)</b></td>
+                <td colspan="6" style="text-align:right;"> <b>Total Income: @incomes.Sum(i => i.Amount).ToString(mongoDbUser.CurrencyPref)</b></td>
             </tr>
         </tfoot>
     </table>
 
-    <input type="range" min="12" max="520" step="1" value="@months"
-           @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />
-    <table class="table">
+    // Projection slider
+    @*<input type="range" min="12" max="520" step="1" value="@months"
+           @oninput="@((args) => months = Convert.ToInt32(args.Value))" @onchange="ProjectionChanged" />*@
+    @*<table class="table">
         <thead>
             <tr>
                 <th>Year</th>
@@ -86,7 +87,7 @@ else
             }
 
         </tbody>
-    </table>
+    </table>*@
 }
 
 @code {

@@ -56,6 +56,8 @@ namespace DissertationArtefact.Shared
         Transfer,
         Investment,
         Cleaning,
-        MedicalHealth
+        MedicalHealth,
+        Housing,
+        Insurance
     }
 }
